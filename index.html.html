@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>배리어프리 마을 만들기</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --teal: #1a8c6e;
+    --teal-light: #e6f5f1;
+    --teal-mid: #a8ddd0;
+    --blue-light: #e8f2fb;
+    --text: #1e1e1e;
+    --text-muted: #6b7280;
+    --border: #e0e0e0;
+    --bg: #f7f8fa;
+    --white: #ffffff;
+    --red: #dc2626;
+    --good: #16a34a;
+    --good-bg: #dcfce7;
+    --fair: #d97706;
+    --fair-bg: #fef3c7;
+    --poor: #dc2626;
+    --poor-bg: #fee2e2;
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+
+  body {
+    font-family: 'Noto Sans KR', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  .app-header {
+    background: var(--white);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 20px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .app-header h1 {
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--teal);
+    letter-spacing: -0.3px;
+  }
+
+  .app-header p {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+
+  .tabs {
+    display: flex;
+    background: var(--white);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 61px;
+    z-index: 99;
+  }
+
+  .tab {
+    flex: 1;
+    padding: 14px 8px;
+    font-size: 14px;
+    font-weight: 500;
+    font-family: 'Noto Sans KR', sans-serif;
+    color: var(--text-muted);
+    background: none;
+    border: none;
+    border-bottom: 3px solid transparent;
+    cursor: pointer;
+    transition: all 0.18s;
+  }
+
+  .tab.active {
+    color: var(--teal);
+    border-bottom-color: var(--teal);
+  }
+
+  .section { display: none; padding: 20px 16px 48px; max-width: 560px; margin: 0 auto; }
+  .section.active { display: block; }
+
+  .notice {
+    background: var(--teal-light);
+    border-left: 3px solid var(--teal);
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    padding: 10px 14px;
+    font-size: 13px;
+    color: #1a5c4a;
+    line-height: 1.6;
+    margin-bottom: 18px;
+  }
+
+  .card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px 16px;
+    margin-bottom: 14px;
+  }
+
+  .card-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .card-title::before {
+    content: '';
+    display: inline-block;
+    width: 3px;
+    height: 13px;
+    background: var(--teal);
+    border-radius: 2px;
+  }
+
+  .field { margin-bottom: 14px; }
+  .field:last-child { margin-bottom: 0; }
+
+  label.field-label {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+
+  .req { color: var(--red); margin-left: 2px; }
+  .opt { color: var(--text-muted); font-weight: 400; font-size: 12px; margin-left: 4px; }
+
+  input[type=text],
+  input[type=tel],
+  input[type=date],
+  textarea,
+  select {
+    width: 100%;
+    padding: 10px 12px;
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 14px;
+    color: var(--text);
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    outline: none;
+    transition: border-color 0.15s;
+    -webkit-appearance: none;
+  }
+
+  input:focus, textarea:focus, select:focus {
+    border-color: var(--teal);
+    box-shadow: 0 0 0 3px rgba(26,140,110,0.1);
+  }
+
+  textarea { resize: vertical; min-height: 88px; line-height: 1.6; }
+
+  .check-list { display: flex; flex-direction: column; gap: 10px; }
+
+  .check-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .check-item:has(input:checked) {
+    border-color: var(--teal);
+    background: var(--teal-light);
+  }
+
+  .check-item input[type=checkbox] {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    margin-top: 1px;
+    accent-color: var(--teal);
+    cursor: pointer;
+  }
+
+  .check-item .item-info { flex: 1; }
+  .check-item .item-name { font-size: 14px; font-weight: 500; line-height: 1.4; }
+  .check-item .item-desc { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+  .rating-group { display: flex; gap: 8px; }
+
+  .rating-btn {
+    flex: 1;
+    padding: 9px 6px;
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--white);
+    cursor: pointer;
+    transition: all 0.15s;
+    color: var(--text-muted);
+  }
+
+  .rating-btn:hover { border-color: #aaa; color: var(--text); }
+  .rating-btn.sel-good { background: var(--good-bg); border-color: var(--good); color: var(--good); font-weight: 700; }
+  .rating-btn.sel-fair { background: var(--fair-bg); border-color: var(--fair); color: var(--fair); font-weight: 700; }
+  .rating-btn.sel-poor { background: var(--poor-bg); border-color: var(--poor); color: var(--poor); font-weight: 700; }
+
+  .pill-group { display: flex; gap: 8px; flex-wrap: wrap; }
+
+  .pill {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 7px 14px;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 13px;
+    color: var(--text-muted);
+    background: var(--white);
+    cursor: pointer;
+    transition: all 0.15s;
+    user-select: none;
+  }
+
+  .pill.active-yes { border-color: var(--poor); color: var(--poor); background: var(--poor-bg); }
+  .pill.active-no { border-color: var(--good); color: var(--good); background: var(--good-bg); }
+  .pill.active-follow { border-color: var(--fair); color: var(--fair); background: var(--fair-bg); }
+
+  .photo-drop {
+    border: 1.5px dashed var(--teal-mid);
+    border-radius: var(--radius-sm);
+    padding: 20px;
+    text-align: center;
+    cursor: pointer;
+    background: var(--teal-light);
+    transition: all 0.15s;
+  }
+
+  .photo-drop:hover { border-color: var(--teal); }
+  .photo-drop .drop-icon { font-size: 28px; margin-bottom: 6px; }
+  .photo-drop p { font-size: 13px; color: var(--teal); font-weight: 500; }
+  .photo-drop small { font-size: 11px; color: var(--text-muted); }
+
+  .photo-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+
+  .photo-thumb {
+    width: 72px;
+    height: 72px;
+    border-radius: var(--radius-sm);
+    object-fit: cover;
+    border: 1px solid var(--border);
+  }
+
+  .submit-btn {
+    width: 100%;
+    padding: 14px;
+    background: var(--teal);
+    color: var(--white);
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    border: none;
+    border-radius: var(--radius);
+    cursor: pointer;
+    margin-top: 6px;
+    transition: all 0.15s;
+    letter-spacing: -0.2px;
+  }
+
+  .submit-btn:hover { background: #167a5e; }
+  .submit-btn:active { transform: scale(0.99); }
+  .submit-btn:disabled { background: #aaa; cursor: not-allowed; }
+
+  .toast {
+    display: none;
+    margin-top: 12px;
+    padding: 12px 16px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    text-align: center;
+    line-height: 1.5;
+  }
+
+  .toast.success { display: block; background: var(--good-bg); color: var(--good); border: 1px solid #86efac; }
+  .toast.error { display: block; background: var(--poor-bg); color: var(--poor); border: 1px solid #fca5a5; }
+
+  .loading-spinner {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255,255,255,0.4);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    vertical-align: middle;
+    margin-right: 6px;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <h1>🌿 배리어프리 마을 만들기</h1>
+  <p>점자메뉴판·경사로 신청 및 모니터링 기록</p>
+</header>
+
+<nav class="tabs">
+  <button class="tab active" onclick="switchTab('apply', this)">📋 신청하기</button>
+  <button class="tab" onclick="switchTab('monitor', this)">🔍 모니터링 기록</button>
+</nav>
+
+<!-- 신청 섹션 -->
+<div id="apply" class="section active">
+  <div class="notice">
+    점자메뉴판 또는 경사로 보급을 원하시는 상점·시설을 신청해 주세요.<br>
+    담당자가 확인 후 연락드립니다.
+  </div>
+
+  <div class="card">
+    <div class="card-title">상점 정보</div>
+    <div class="field">
+      <label class="field-label">상호명<span class="req">*</span></label>
+      <input type="text" id="a_name" placeholder="예) 종로분식" />
+    </div>
+    <div class="field">
+      <label class="field-label">주소<span class="req">*</span></label>
+      <input type="text" id="a_addr" placeholder="예) 서울시 종로구 종로1길 12" />
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">신청 항목</div>
+    <div class="check-list">
+      <label class="check-item">
+        <input type="checkbox" id="a_braille" />
+        <div class="item-info">
+          <div class="item-name">📖 점자메뉴판</div>
+          <div class="item-desc">시각장애인을 위한 음식·메뉴 안내용 점자 메뉴판</div>
+        </div>
+      </label>
+      <label class="check-item">
+        <input type="checkbox" id="a_ramp" />
+        <div class="item-info">
+          <div class="item-name">♿ 경사로</div>
+          <div class="item-desc">휠체어·유모차 이용자를 위한 출입구 경사로</div>
+        </div>
+      </label>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">신청자 정보</div>
+    <div class="field">
+      <label class="field-label">연락처<span class="req">*</span></label>
+      <input type="tel" id="a_phone" placeholder="예) 010-1234-5678" />
+    </div>
+    <div class="field">
+      <label class="field-label">요청 메모<span class="opt">(선택)</span></label>
+      <textarea id="a_memo" placeholder="추가로 전달하고 싶은 내용이 있으면 자유롭게 적어주세요."></textarea>
+    </div>
+  </div>
+
+  <button class="submit-btn" id="apply-btn" onclick="submitApply()">신청 제출하기</button>
+  <div id="apply-toast" class="toast"></div>
+</div>
+
+<!-- 모니터링 섹션 -->
+<div id="monitor" class="section">
+  <div class="notice">
+    모니터링단 전용 화면입니다.<br>현장에서 점검한 내용을 기록해 주세요.
+  </div>
+
+  <div class="card">
+    <div class="card-title">장소 정보</div>
+    <div class="field">
+      <label class="field-label">장소명<span class="req">*</span></label>
+      <input type="text" id="m_place" placeholder="예) 삼청로 카페거리" />
+    </div>
+    <div class="field">
+      <label class="field-label">주소<span class="req">*</span></label>
+      <input type="text" id="m_addr" placeholder="예) 서울시 종로구 삼청로 12" />
+    </div>
+    <div class="field">
+      <label class="field-label">모니터링 날짜<span class="req">*</span></label>
+      <input type="date" id="m_date" />
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">항목별 평가</div>
+    <div class="field">
+      <label class="field-label">점자메뉴판 구비 여부</label>
+      <div class="rating-group" id="rg_r1">
+        <button class="rating-btn" onclick="setRating('m_r1','rg_r1',this,'good')">👍 좋음</button>
+        <button class="rating-btn" onclick="setRating('m_r1','rg_r1',this,'fair')">😐 보통</button>
+        <button class="rating-btn" onclick="setRating('m_r1','rg_r1',this,'poor')">👎 미흡</button>
+      </div>
+      <input type="hidden" id="m_r1" />
+    </div>
+    <div class="field">
+      <label class="field-label">경사로 및 출입 접근성</label>
+      <div class="rating-group" id="rg_r2">
+        <button class="rating-btn" onclick="setRating('m_r2','rg_r2',this,'good')">👍 좋음</button>
+        <button class="rating-btn" onclick="setRating('m_r2','rg_r2',this,'fair')">😐 보통</button>
+        <button class="rating-btn" onclick="setRating('m_r2','rg_r2',this,'poor')">👎 미흡</button>
+      </div>
+      <input type="hidden" id="m_r2" />
+    </div>
+    <div class="field">
+      <label class="field-label">화장실 접근성</label>
+      <div class="rating-group" id="rg_r3">
+        <button class="rating-btn" onclick="setRating('m_r3','rg_r3',this,'good')">👍 좋음</button>
+        <button class="rating-btn" onclick="setRating('m_r3','rg_r3',this,'fair')">😐 보통</button>
+        <button class="rating-btn" onclick="setRating('m_r3','rg_r3',this,'poor')">👎 미흡</button>
+      </div>
+      <input type="hidden" id="m_r3" />
+    </div>
+    <div class="field">
+      <label class="field-label">안내판·표지판 가독성</label>
+      <div class="rating-group" id="rg_r4">
+        <button class="rating-btn" onclick="setRating('m_r4','rg_r4',this,'good')">👍 좋음</button>
+        <button class="rating-btn" onclick="setRating('m_r4','rg_r4',this,'fair')">😐 보통</button>
+        <button class="rating-btn" onclick="setRating('m_r4','rg_r4',this,'poor')">👎 미흡</button>
+      </div>
+      <input type="hidden" id="m_r4" />
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">현장 사진</div>
+    <div class="photo-drop" onclick="document.getElementById('m_photos').click()">
+      <div class="drop-icon">📷</div>
+      <p>탭해서 사진 추가하기</p>
+      <small>최대 6장</small>
+    </div>
+    <input type="file" id="m_photos" accept="image/*" multiple style="display:none" onchange="previewPhotos(this)" />
+    <div class="photo-grid" id="photo-grid"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">종합 의견</div>
+    <div class="field">
+      <label class="field-label">조치 필요 여부</label>
+      <div class="pill-group">
+        <button class="pill" id="pill_yes" onclick="selectPill('yes')">🚨 조치 필요</button>
+        <button class="pill" id="pill_no" onclick="selectPill('no')">✅ 양호</button>
+        <button class="pill" id="pill_follow" onclick="selectPill('follow')">🕐 추후 확인</button>
+      </div>
+      <input type="hidden" id="m_action" />
+    </div>
+    <div class="field">
+      <label class="field-label">종합 의견<span class="req">*</span></label>
+      <textarea id="m_comment" placeholder="전반적인 점검 소감, 개선이 필요한 부분, 잘 된 점 등을 자유롭게 적어주세요." style="min-height:110px"></textarea>
+    </div>
+    <div class="field">
+      <label class="field-label">기록자 이름<span class="opt">(선택)</span></label>
+      <input type="text" id="m_author" placeholder="예) 홍길동" />
+    </div>
+  </div>
+
+  <button class="submit-btn" id="monitor-btn" onclick="submitMonitor()">기록 제출하기</button>
+  <div id="monitor-toast" class="toast"></div>
+</div>
+
+<script>
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxBQWn2adwedy94MWxF3NGjyEnnMHde4vm-6VRXP1PEVGr6mDKQbQm7RFG3vnmrcAQ4/exec';
+
+function switchTab(id, el) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  el.classList.add('active');
+}
+
+function setRating(fieldId, groupId, btn, level) {
+  const group = document.getElementById(groupId);
+  group.querySelectorAll('.rating-btn').forEach(b => {
+    b.classList.remove('sel-good', 'sel-fair', 'sel-poor');
+  });
+  btn.classList.add('sel-' + level);
+  document.getElementById(fieldId).value = level === 'good' ? '좋음' : level === 'fair' ? '보통' : '미흡';
+}
+
+let selectedPill = '';
+function selectPill(val) {
+  selectedPill = val;
+  ['yes','no','follow'].forEach(v => {
+    const el = document.getElementById('pill_' + v);
+    el.className = 'pill';
+    if (v === val) el.classList.add('active-' + v);
+  });
+  document.getElementById('m_action').value =
+    val === 'yes' ? '조치 필요' : val === 'no' ? '양호' : '추후 확인';
+}
+
+function previewPhotos(input) {
+  const grid = document.getElementById('photo-grid');
+  grid.innerHTML = '';
+  Array.from(input.files).slice(0, 6).forEach(file => {
+    const img = document.createElement('img');
+    img.className = 'photo-thumb';
+    img.src = URL.createObjectURL(file);
+    grid.appendChild(img);
+  });
+}
+
+function showToast(id, msg, type) {
+  const el = document.getElementById(id);
+  el.textContent = msg;
+  el.className = 'toast ' + type;
+  setTimeout(() => { el.className = 'toast'; }, 5000);
+}
+
+function setLoading(btnId, loading) {
+  const btn = document.getElementById(btnId);
+  if (loading) {
+    btn.disabled = true;
+    btn.innerHTML = '<span class="loading-spinner"></span>전송 중...';
+  } else {
+    btn.disabled = false;
+    btn.textContent = btnId === 'apply-btn' ? '신청 제출하기' : '기록 제출하기';
+  }
+}
+
+async function submitApply() {
+  const name = document.getElementById('a_name').value.trim();
+  const addr = document.getElementById('a_addr').value.trim();
+  const phone = document.getElementById('a_phone').value.trim();
+  const braille = document.getElementById('a_braille').checked;
+  const ramp = document.getElementById('a_ramp').checked;
+  const memo = document.getElementById('a_memo').value.trim();
+
+  if (!name) { showToast('apply-toast', '상호명을 입력해 주세요.', 'error'); return; }
+  if (!addr) { showToast('apply-toast', '주소를 입력해 주세요.', 'error'); return; }
+  if (!phone) { showToast('apply-toast', '연락처를 입력해 주세요.', 'error'); return; }
+  if (!braille && !ramp) { showToast('apply-toast', '신청 항목을 하나 이상 선택해 주세요.', 'error'); return; }
+
+  const items = [braille && '점자메뉴판', ramp && '경사로'].filter(Boolean).join(', ');
+
+  setLoading('apply-btn', true);
+  try {
+    await fetch(SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      body: JSON.stringify({
+        type: 'apply', name, addr, items, phone, memo,
+        timestamp: new Date().toLocaleString('ko-KR')
+      }),
+      headers: { 'Content-Type': 'application/json' }
+    });
+    showToast('apply-toast', '✅ 신청이 접수되었습니다. 담당자가 확인 후 연락드릴게요!', 'success');
+    document.getElementById('a_name').value = '';
+    document.getElementById('a_addr').value = '';
+    document.getElementById('a_phone').value = '';
+    document.getElementById('a_braille').checked = false;
+    document.getElementById('a_ramp').checked = false;
+    document.getElementById('a_memo').value = '';
+  } catch (err) {
+    showToast('apply-toast', '전송 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.', 'error');
+  }
+  setLoading('apply-btn', false);
+}
+
+async function submitMonitor() {
+  const place = document.getElementById('m_place').value.trim();
+  const addr = document.getElementById('m_addr').value.trim();
+  const date = document.getElementById('m_date').value;
+  const comment = document.getElementById('m_comment').value.trim();
+  const r1 = document.getElementById('m_r1').value;
+  const r2 = document.getElementById('m_r2').value;
+  const r3 = document.getElementById('m_r3').value;
+  const r4 = document.getElementById('m_r4').value;
+  const action = document.getElementById('m_action').value;
+  const author = document.getElementById('m_author').value.trim();
+
+  if (!place) { showToast('monitor-toast', '장소명을 입력해 주세요.', 'error'); return; }
+  if (!addr) { showToast('monitor-toast', '주소를 입력해 주세요.', 'error'); return; }
+  if (!date) { showToast('monitor-toast', '모니터링 날짜를 선택해 주세요.', 'error'); return; }
+  if (!comment) { showToast('monitor-toast', '종합 의견을 입력해 주세요.', 'error'); return; }
+
+  setLoading('monitor-btn', true);
+  try {
+    await fetch(SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      body: JSON.stringify({
+        type: 'monitor', place, addr, date,
+        r1, r2, r3, r4, action, comment, author,
+        timestamp: new Date().toLocaleString('ko-KR')
+      }),
+      headers: { 'Content-Type': 'application/json' }
+    });
+    showToast('monitor-toast', '✅ 기록이 저장되었습니다!', 'success');
+  } catch (err) {
+    showToast('monitor-toast', '전송 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.', 'error');
+  }
+  setLoading('monitor-btn', false);
+}
+
+document.getElementById('m_date').valueAsDate = new Date();
+</script>
+</body>
+</html>
