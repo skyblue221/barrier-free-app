@@ -314,9 +314,116 @@
   }
 
   @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* 비밀번호 잠금 화면 */
+  .lock-screen {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+  }
+
+  .lock-screen.show { display: flex; }
+
+  .lock-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 32px 28px;
+    width: 300px;
+    text-align: center;
+  }
+
+  .lock-icon { font-size: 36px; margin-bottom: 12px; }
+  .lock-title { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+  .lock-sub { font-size: 13px; color: var(--text-muted); margin-bottom: 24px; }
+
+  .pin-dots {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .pin-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    background: var(--white);
+    transition: all 0.15s;
+  }
+
+  .pin-dot.filled { background: var(--teal); border-color: var(--teal); }
+  .pin-dot.error { background: var(--red); border-color: var(--red); }
+
+  .pin-keypad {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+
+  .pin-key {
+    padding: 14px;
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 18px;
+    font-weight: 500;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.1s;
+    color: var(--text);
+  }
+
+  .pin-key:hover { background: var(--teal-light); border-color: var(--teal-mid); }
+  .pin-key:active { transform: scale(0.95); }
+  .pin-key.del { font-size: 14px; color: var(--text-muted); }
+  .pin-key.empty { visibility: hidden; }
+
+  .lock-error {
+    font-size: 12px;
+    color: var(--red);
+    margin-top: 12px;
+    min-height: 18px;
+  }
 </style>
 </head>
 <body>
+
+<!-- 비밀번호 잠금 화면 -->
+<div class="lock-screen" id="lock-screen">
+  <div class="lock-card">
+    <div class="lock-icon">🔒</div>
+    <div class="lock-title">모니터링단 전용</div>
+    <div class="lock-sub">4자리 비밀번호를 입력해 주세요</div>
+    <div class="pin-dots">
+      <div class="pin-dot" id="dot0"></div>
+      <div class="pin-dot" id="dot1"></div>
+      <div class="pin-dot" id="dot2"></div>
+      <div class="pin-dot" id="dot3"></div>
+    </div>
+    <div class="pin-keypad">
+      <button class="pin-key" onclick="pinInput('1')">1</button>
+      <button class="pin-key" onclick="pinInput('2')">2</button>
+      <button class="pin-key" onclick="pinInput('3')">3</button>
+      <button class="pin-key" onclick="pinInput('4')">4</button>
+      <button class="pin-key" onclick="pinInput('5')">5</button>
+      <button class="pin-key" onclick="pinInput('6')">6</button>
+      <button class="pin-key" onclick="pinInput('7')">7</button>
+      <button class="pin-key" onclick="pinInput('8')">8</button>
+      <button class="pin-key" onclick="pinInput('9')">9</button>
+      <button class="pin-key empty"></button>
+      <button class="pin-key" onclick="pinInput('0')">0</button>
+      <button class="pin-key del" onclick="pinDelete()">지우기</button>
+    </div>
+    <div class="lock-error" id="lock-error"></div>
+  </div>
+</div>
 
 <header class="app-header">
   <h1>🌿 배리어프리 마을 만들기</h1>
@@ -325,7 +432,7 @@
 
 <nav class="tabs">
   <button class="tab active" onclick="switchTab('apply', this)">📋 신청하기</button>
-  <button class="tab" onclick="switchTab('monitor', this)">🔍 모니터링 기록</button>
+  <button class="tab" onclick="requirePin(this)">🔍 모니터링 기록</button>
 </nav>
 
 <!-- 신청 섹션 -->
@@ -483,12 +590,59 @@
 
 <script>
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxBQWn2adwedy94MWxF3NGjyEnnMHde4vm-6VRXP1PEVGr6mDKQbQm7RFG3vnmrcAQ4/exec';
+const MONITOR_PIN = '7051'; // ← 비밀번호 여기서 변경
+
+let pinValue = '';
+let monitorUnlocked = false;
+let pendingTabEl = null;
 
 function switchTab(id, el) {
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   el.classList.add('active');
+}
+
+function requirePin(el) {
+  if (monitorUnlocked) { switchTab('monitor', el); return; }
+  pendingTabEl = el;
+  pinValue = '';
+  updateDots();
+  document.getElementById('lock-error').textContent = '';
+  document.getElementById('lock-screen').classList.add('show');
+}
+
+function pinInput(num) {
+  if (pinValue.length >= 4) return;
+  pinValue += num;
+  updateDots();
+  if (pinValue.length === 4) setTimeout(checkPin, 120);
+}
+
+function pinDelete() {
+  pinValue = pinValue.slice(0, -1);
+  updateDots();
+  document.getElementById('lock-error').textContent = '';
+}
+
+function updateDots() {
+  for (let i = 0; i < 4; i++) {
+    const dot = document.getElementById('dot' + i);
+    dot.classList.toggle('filled', i < pinValue.length);
+    dot.classList.remove('error');
+  }
+}
+
+function checkPin() {
+  if (pinValue === MONITOR_PIN) {
+    monitorUnlocked = true;
+    document.getElementById('lock-screen').classList.remove('show');
+    switchTab('monitor', pendingTabEl);
+  } else {
+    for (let i = 0; i < 4; i++) document.getElementById('dot' + i).classList.add('error');
+    document.getElementById('lock-error').textContent = '비밀번호가 맞지 않아요. 다시 시도해 주세요.';
+    setTimeout(() => { pinValue = ''; updateDots(); }, 800);
+  }
 }
 
 function setRating(fieldId, groupId, btn, level) {
