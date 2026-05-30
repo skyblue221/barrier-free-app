@@ -479,7 +479,12 @@
 <!-- 지도 -->
 <div id="map" class="section">
   <div class="notice">신청이 접수된 상점 위치를 지도에서 확인할 수 있어요.<br>주소가 입력된 신청 기록만 표시됩니다.</div>
-  <div id="kakao-map" style="width:100%;height:420px;border-radius:12px;border:1px solid var(--border);margin-bottom:14px;"></div>
+  <div style="position:relative;margin-bottom:14px">
+    <div id="kakao-map" style="width:100%;height:420px;border-radius:12px;border:1px solid var(--border);"></div>
+    <button onclick="moveToMyLocation()" style="position:absolute;bottom:12px;right:12px;background:white;border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-family:'Noto Sans KR',sans-serif;font-size:13px;font-weight:500;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,0.12);display:flex;align-items:center;gap:6px;z-index:10">
+      📍 내 위치
+    </button>
+  </div>
   <div class="card">
     <div class="card-title">신청 목록</div>
     <div id="map-list"></div>
@@ -1072,6 +1077,31 @@ function makeMarkerImage(color) {
   </svg>`;
   const url = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
   return new kakao.maps.MarkerImage(url, new kakao.maps.Size(32, 40), { offset: new kakao.maps.Point(16, 40) });
+}
+
+let myLocationMarker = null;
+
+function moveToMyLocation() {
+  if (!mapInstance) return;
+  if (!navigator.geolocation) {
+    alert('이 브라우저에서는 위치 서비스가 지원되지 않아요.');
+    return;
+  }
+  navigator.geolocation.getCurrentPosition(function(pos) {
+    const myPos = new kakao.maps.LatLng(pos.coords.latitude, pos.coords.longitude);
+    const mySvg = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><circle cx="10" cy="10" r="8" fill="#6366f1" stroke="white" stroke-width="2"/><circle cx="10" cy="10" r="3" fill="white"/></svg>';
+    const myImg = new kakao.maps.MarkerImage(
+      'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(mySvg),
+      new kakao.maps.Size(20, 20),
+      { offset: new kakao.maps.Point(10, 10) }
+    );
+    if (myLocationMarker) myLocationMarker.setMap(null);
+    myLocationMarker = new kakao.maps.Marker({ map: mapInstance, position: myPos, image: myImg, zIndex: 10 });
+    mapInstance.setCenter(myPos);
+    mapInstance.setLevel(4);
+  }, function() {
+    alert('위치 정보를 가져올 수 없어요.\n브라우저 설정에서 위치 권한을 허용해 주세요.');
+  });
 }
 
 function getMarkerColor(rec) {
