@@ -215,7 +215,7 @@
 
 <header class="app-header">
   <h1>🌿 배리어프리 마을 만들기</h1>
-  <p>점자메뉴판·경사로 신청 및 모니터링 기록</p>
+  <p>접근성 개선 신청 및 모니터링 기록</p>
 </header>
 
 <nav class="tabs">
@@ -1125,14 +1125,14 @@ function renderMap() {
 
   mapRecords.forEach(function(rec, idx) {
     const markerColor = getMarkerColor(rec);
-    const typeLabel = rec.type === 'apply' ? '보급 신청'
-      : rec.action === '조치 필요' ? '조치 필요'
+    const typeLabel = rec.type === 'apply' ? '보급 신청' : '모니터링';
+    const typeTagStyle = rec.type === 'apply' ? 'tag tag-apply' : 'tag tag-monitor';
+    const actionLabel = rec.action === '조치 필요' ? '조치 필요'
       : rec.action === '추후 확인' ? '추후 확인'
-      : '모니터링 완료';
-    const tagStyle = rec.type === 'apply' ? 'tag tag-apply'
-      : rec.action === '조치 필요' ? 'tag tag-action'
+      : rec.action === '양호' ? '양호' : '';
+    const actionTagStyle = rec.action === '조치 필요' ? 'tag tag-action'
       : rec.action === '추후 확인' ? 'tag tag-fair'
-      : 'tag tag-monitor';
+      : 'tag tag-good';
 
     const item = document.createElement('div');
     item.className = 'record-item';
@@ -1142,7 +1142,8 @@ function renderMap() {
       + '<span class="rec-name">'+rec.name+'</span>'
       + '</div>'
       + '<div class="rec-addr">'+rec.addr+'</div>'
-      + '<div class="rec-tags"><span class="'+tagStyle+'">'+typeLabel+'</span>'
+      + '<div class="rec-tags"><span class="'+typeTagStyle+'">'+typeLabel+'</span>'
+      + (actionLabel ? '<span class="'+actionTagStyle+'">'+actionLabel+'</span>' : '')
       + (rec.items ? '<span class="tag" style="background:#f0fdf4;color:#166534">'+rec.items+'</span>' : '')
       + '</div>';
     recordListEl.appendChild(item);
