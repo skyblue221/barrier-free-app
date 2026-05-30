@@ -5,6 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>배리어프리 마을 만들기</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="manifest" href="manifest.json" />
+<meta name="theme-color" content="#1a8c6e" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-mobile-web-app-title" content="배리어프리" />
+<link rel="apple-touch-icon" href="icon-192.png" />
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet" />
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -1351,6 +1357,14 @@ function renderMap() {
     });
   });
 }
+// ── Service Worker 등록 ──────────────────────────────
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/barrier-free-app/sw.js')
+      .catch(() => {});
+  });
+}
+
 // ── 초기화 ────────────────────────────────────────
 
 // 샘플 데이터 없음 (실제 운영용)
