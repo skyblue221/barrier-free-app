@@ -330,6 +330,20 @@
       <textarea id="a_memo" placeholder="추가로 전달하고 싶은 내용을 적어주세요."></textarea>
     </div>
   </div>
+  <div class="card" style="background:var(--teal-light);border-color:var(--teal-mid)">
+    <div style="font-size:13px;color:#1a5c4a;line-height:1.7;margin-bottom:12px">
+      입력하신 개인정보는 종로장애인복지관의 접근성 개선 신청 접수 및 진행 안내를 위해서만 사용되며, 담당자 외에는 공개되지 않습니다.
+    </div>
+    <div style="font-size:12px;color:#1a5c4a;background:rgba(255,255,255,0.5);border-radius:8px;padding:10px 12px;margin-bottom:12px;line-height:1.8">
+      · 수집항목: 이름, 연락처<br>
+      · 이용목적: 접근성 개선 신청 접수 및 진행 안내<br>
+      · 보유기간: 신청 처리 완료 후 1년 보관 후 파기
+    </div>
+    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:14px;font-weight:500;color:#1a5c4a">
+      <input type="checkbox" id="a_privacy" style="width:18px;height:18px;accent-color:var(--teal);flex-shrink:0" />
+      개인정보 수집 및 이용에 동의합니다.
+    </label>
+  </div>
   <button class="submit-btn" id="apply-btn" onclick="submitApply()">신청 제출하기</button>
   <div id="apply-toast" class="toast"></div>
 </div>
@@ -478,11 +492,13 @@
 <!-- 지도 -->
 <div id="map" class="section">
   <div class="notice">신청이 접수된 상점 위치를 지도에서 확인할 수 있어요.<br>주소가 입력된 신청 기록만 표시됩니다.</div>
-  <div style="position:relative;margin-bottom:14px">
-    <div id="kakao-map" style="width:100%;height:420px;border-radius:12px;border:1px solid var(--border);"></div>
-    <button onclick="moveToMyLocation()" style="position:absolute;bottom:12px;right:12px;background:white;border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-family:'Noto Sans KR',sans-serif;font-size:13px;font-weight:500;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,0.12);display:flex;align-items:center;gap:6px;z-index:10">
-      📍 내 위치
-    </button>
+  <div style="position:sticky;top:101px;z-index:50;background:var(--bg);padding-bottom:8px">
+    <div style="position:relative">
+      <div id="kakao-map" style="width:100%;height:280px;border-radius:12px;border:1px solid var(--border);"></div>
+      <button onclick="moveToMyLocation()" style="position:absolute;bottom:12px;right:12px;background:white;border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-family:'Noto Sans KR',sans-serif;font-size:13px;font-weight:500;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,0.12);display:flex;align-items:center;gap:6px;z-index:10">
+        📍 내 위치
+      </button>
+    </div>
   </div>
   <div class="card">
     <div class="card-title">신청 목록</div>
@@ -673,6 +689,8 @@ async function submitApply() {
   const sign = document.getElementById('a_sign').checked;
   const other = document.getElementById('a_other').checked;
   const memo = document.getElementById('a_memo').value.trim();
+  const privacy = document.getElementById('a_privacy').checked;
+  if (!privacy) { showToast('apply-toast','개인정보 수집 및 이용에 동의해 주세요.','error'); return; }
   if (!name) { showToast('apply-toast','상호명을 입력해 주세요.','error'); return; }
   if (!addr) { showToast('apply-toast','주소를 입력해 주세요.','error'); return; }
   if (!applyname) { showToast('apply-toast','이름 또는 닉네임을 입력해 주세요.','error'); return; }
@@ -691,6 +709,7 @@ async function submitApply() {
   ['a_name','a_addr','a_applyname','a_phone','a_memo','a_other_detail'].forEach(id => document.getElementById(id).value = '');
   ['a_braille','a_ramp','a_sign','a_other'].forEach(id => document.getElementById(id).checked = false);
   document.getElementById('other-input-wrap').style.display = 'none';
+  document.getElementById('a_privacy').checked = false;
   setLoading('apply-btn', false, '신청 제출하기');
 }
 
@@ -898,10 +917,14 @@ function recordCard(r, idx) {
   let detail = '';
   if (r.type === 'apply') {
     detail = `
-      ${r.applyname ? `<div class="detail-row"><span class="detail-label">신청자</span><span class="detail-value">${r.applyname}</span></div>` : ''}
       ${r.items ? `<div class="detail-row"><span class="detail-label">신청 항목</span><span class="detail-value">${r.items}</span></div>` : ''}
-      ${r.phone ? `<div class="detail-row"><span class="detail-label">연락처</span><span class="detail-value">${r.phone}</span></div>` : ''}
-      ${r.memo ? `<div class="detail-row"><span class="detail-label">요청 메모</span><span class="detail-value">${r.memo}</span></div>` : ''}
+      ${r.action ? `<div class="detail-row"><span class="detail-label">진행 상태</span><span class="detail-value">${r.action}</span></div>` : ''}
+      ${managerUnlocked
+        ? (r.applyname ? `<div class="detail-row"><span class="detail-label">신청자</span><span class="detail-value">${r.applyname}</span></div>` : '')
+          + (r.phone ? `<div class="detail-row"><span class="detail-label">연락처</span><span class="detail-value">${r.phone}</span></div>` : '')
+          + (r.memo ? `<div class="detail-row"><span class="detail-label">요청 메모</span><span class="detail-value">${r.memo}</span></div>` : '')
+        : '<div class="detail-row"><span style="font-size:12px;color:var(--text-muted)">🔒 신청자·연락처·메모는 담당자만 볼 수 있어요</span></div>'
+      }
     `;
   } else {
     const ratings = [
@@ -915,7 +938,10 @@ function recordCard(r, idx) {
       ${ratings ? `<div class="detail-row"><span class="detail-label">항목 평가</span><span class="detail-value">${ratings}</span></div>` : ''}
       ${r.comment ? `<div class="detail-row"><span class="detail-label">종합 의견</span><span class="detail-value">${r.comment}</span></div>` : ''}
       ${r.extras ? `<div class="detail-row"><span class="detail-label">추가 확인</span><span class="detail-value">${r.extras}</span></div>` : ''}
-      ${r.author ? `<div class="detail-row"><span class="detail-label">기록자</span><span class="detail-value">${r.author}</span></div>` : ''}
+      ${managerUnlocked
+        ? (r.author ? `<div class="detail-row"><span class="detail-label">기록자</span><span class="detail-value">${r.author}</span></div>` : '')
+        : '<div class="detail-row"><span style="font-size:12px;color:var(--text-muted)">🔒 기록자는 담당자만 볼 수 있어요</span></div>'
+      }
     `;
   }
 
@@ -931,7 +957,7 @@ function recordCard(r, idx) {
     <div class="rec-tags">${typeTag}${actionTag}${itemsTag}</div>
     <div class="record-detail" id="detail-${idx}">
       ${detail}
-      ${statusDropdown(r)}
+      ${managerUnlocked ? statusDropdown(r) : '<div style="font-size:12px;color:var(--text-muted);margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">🔒 상태 변경은 담당자만 가능해요</div>'}
     </div>
   </div>`;
 }
