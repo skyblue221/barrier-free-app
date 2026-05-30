@@ -905,8 +905,8 @@ function renderMap() {
     const item = document.createElement('div');
     item.className = 'record-item';
     item.style.cursor = 'pointer';
-    item.innerHTML = '<div class="rec-top">'
-      + '<span style="width:10px;height:10px;border-radius:50%;background:'+markerColor+';display:inline-block;margin-right:6px;flex-shrink:0"></span>'
+    item.innerHTML = '<div class="rec-top" style="justify-content:flex-start;gap:6px">'
+      + '<span style="width:10px;height:10px;border-radius:50%;background:'+markerColor+';display:inline-block;flex-shrink:0"></span>'
       + '<span class="rec-name">'+rec.name+'</span>'
       + '</div>'
       + '<div class="rec-addr">'+rec.addr+'</div>'
