@@ -509,6 +509,11 @@
 <!-- 설정 -->
 <div id="settings" class="section">
   <div class="card">
+    <div class="card-title">담당자 인증</div>
+    <div id="manager-auth-status" style="font-size:13px;color:var(--text-muted);margin-bottom:12px">🔒 인증되지 않았어요. 담당자 비번으로 로그인하면 개인정보와 상태 변경이 가능해요.</div>
+    <button class="sec-btn primary" id="manager-auth-btn" onclick="toggleManagerAuth()">담당자 로그인</button>
+  </div>
+  <div class="card">
     <div class="card-title">Google 시트 연결</div>
     <div id="sheet-status" class="settings-status connected">✅ 시트가 연결되어 있어요</div>
     <p style="font-size:13px;color:var(--text-muted);margin-top:8px">신청 및 모니터링 기록이 Google 시트에 자동으로 저장됩니다.</p>
@@ -919,11 +924,11 @@ function recordCard(r, idx) {
     detail = `
       ${r.items ? `<div class="detail-row"><span class="detail-label">신청 항목</span><span class="detail-value">${r.items}</span></div>` : ''}
       ${r.action ? `<div class="detail-row"><span class="detail-label">진행 상태</span><span class="detail-value">${r.action}</span></div>` : ''}
+      ${r.memo ? `<div class="detail-row"><span class="detail-label">요청 메모</span><span class="detail-value">${r.memo}</span></div>` : ''}
       ${managerUnlocked
         ? (r.applyname ? `<div class="detail-row"><span class="detail-label">신청자</span><span class="detail-value">${r.applyname}</span></div>` : '')
           + (r.phone ? `<div class="detail-row"><span class="detail-label">연락처</span><span class="detail-value">${r.phone}</span></div>` : '')
-          + (r.memo ? `<div class="detail-row"><span class="detail-label">요청 메모</span><span class="detail-value">${r.memo}</span></div>` : '')
-        : '<div class="detail-row"><span style="font-size:12px;color:var(--text-muted)">🔒 신청자·연락처·메모는 담당자만 볼 수 있어요</span></div>'
+        : '<div class="detail-row"><span style="font-size:12px;color:var(--text-muted)">🔒 신청자·연락처는 담당자만 볼 수 있어요</span></div>'
       }
     `;
   } else {
@@ -1105,8 +1110,41 @@ function closeEditModal(e) {
 }
 
 // ── 설정 ─────────────────────────────────────────
+function toggleManagerAuth() {
+  if (managerUnlocked) {
+    // 로그아웃
+    managerUnlocked = false;
+    updateManagerAuthUI();
+    renderRecords();
+  } else {
+    // 로그인
+    requireManagerPin(function() {
+      updateManagerAuthUI();
+      renderRecords();
+    });
+  }
+}
+
+function updateManagerAuthUI() {
+  const status = document.getElementById('manager-auth-status');
+  const btn = document.getElementById('manager-auth-btn');
+  if (!status || !btn) return;
+  if (managerUnlocked) {
+    status.textContent = '✅ 담당자로 로그인되어 있어요. 개인정보와 상태 변경이 가능해요.';
+    status.style.color = 'var(--good)';
+    btn.textContent = '로그아웃';
+    btn.className = 'sec-btn danger';
+  } else {
+    status.textContent = '🔒 인증되지 않았어요. 담당자 비번으로 로그인하면 개인정보와 상태 변경이 가능해요.';
+    status.style.color = 'var(--text-muted)';
+    btn.textContent = '담당자 로그인';
+    btn.className = 'sec-btn primary';
+  }
+}
+
 function loadSettingsUI() {
   // URL 고정 — 변경 불필요
+  updateManagerAuthUI();
 }
 function saveSheetUrl() {}
 
