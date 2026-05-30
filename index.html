@@ -272,10 +272,28 @@
           <div class="item-desc">휠체어·유모차 이용자를 위한 출입구 경사로</div>
         </div>
       </label>
+      <label class="check-item">
+        <input type="checkbox" id="a_sign" />
+        <div class="item-info">
+          <div class="item-name">🔤 쉬운 안내판</div>
+          <div class="item-desc">픽토그램·쉬운 그림으로 된 메뉴판 또는 안내판</div>
+        </div>
+      </label>
+      <label class="check-item">
+        <input type="checkbox" id="a_other" />
+        <div class="item-info">
+          <div class="item-name">💬 기타</div>
+          <div class="item-desc">위 항목 외 접근성 관련 지원이 필요한 경우</div>
+        </div>
+      </label>
     </div>
   </div>
   <div class="card">
     <div class="card-title">신청자 정보</div>
+    <div class="field">
+      <label class="field-label">이름 또는 닉네임<span class="req">*</span></label>
+      <input type="text" id="a_applyname" placeholder="예) 홍길동 또는 종로주민" />
+    </div>
     <div class="field">
       <label class="field-label">연락처<span class="req">*</span></label>
       <input type="tel" id="a_phone" placeholder="예) 010-1234-5678" />
@@ -347,6 +365,36 @@
     </div>
   </div>
   <div class="card">
+    <div class="card-title">추가 확인 항목</div>
+    <div class="field">
+      <label class="field-label">해당하는 항목을 모두 선택해 주세요<span class="opt">(선택)</span></label>
+      <div class="check-list">
+        <label class="check-item">
+          <input type="checkbox" id="m_easysign" />
+          <div class="item-info">
+            <div class="item-name">🔤 쉬운 안내판 필요</div>
+            <div class="item-desc">픽토그램·그림 안내판 또는 쉬운 메뉴판이 필요한 곳</div>
+          </div>
+        </label>
+        <label class="check-item">
+          <input type="checkbox" id="m_goodstaff" />
+          <div class="item-info">
+            <div class="item-name">😊 직원 응대 좋음</div>
+            <div class="item-desc">장애인·노인 등에게 친절하고 배려 있는 응대를 하는 곳</div>
+          </div>
+        </label>
+        <label class="check-item">
+          <input type="checkbox" id="m_goodcase" />
+          <div class="item-info">
+            <div class="item-name">⭐ 좋은 사례</div>
+            <div class="item-desc">다른 곳에 소개하고 싶은 배리어프리 우수 사례</div>
+          </div>
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
     <div class="card-title">현장 사진</div>
     <div class="photo-drop" onclick="document.getElementById('m_photos').click()">
       <div class="drop-icon">📷</div>
@@ -372,7 +420,7 @@
       <textarea id="m_comment" placeholder="전반적인 점검 소감, 개선이 필요한 부분, 잘 된 점 등을 자유롭게 적어주세요." style="min-height:110px"></textarea>
     </div>
     <div class="field">
-      <label class="field-label">기록자 이름<span class="opt">(선택)</span></label>
+      <label class="field-label">기록자 이름<span class="req">*</span></label>
       <input type="text" id="m_author" placeholder="예) 홍길동" />
     </div>
   </div>
@@ -521,25 +569,28 @@ function setLoading(btnId, loading, label) {
 async function submitApply() {
   const name = document.getElementById('a_name').value.trim();
   const addr = document.getElementById('a_addr').value.trim();
+  const applyname = document.getElementById('a_applyname').value.trim();
   const phone = document.getElementById('a_phone').value.trim();
   const braille = document.getElementById('a_braille').checked;
   const ramp = document.getElementById('a_ramp').checked;
+  const sign = document.getElementById('a_sign').checked;
+  const other = document.getElementById('a_other').checked;
   const memo = document.getElementById('a_memo').value.trim();
   if (!name) { showToast('apply-toast','상호명을 입력해 주세요.','error'); return; }
   if (!addr) { showToast('apply-toast','주소를 입력해 주세요.','error'); return; }
+  if (!applyname) { showToast('apply-toast','이름 또는 닉네임을 입력해 주세요.','error'); return; }
   if (!phone) { showToast('apply-toast','연락처를 입력해 주세요.','error'); return; }
-  if (!braille && !ramp) { showToast('apply-toast','신청 항목을 하나 이상 선택해 주세요.','error'); return; }
-  const items = [braille && '점자메뉴판', ramp && '경사로'].filter(Boolean).join(', ');
+  if (!braille && !ramp && !sign && !other) { showToast('apply-toast','신청 항목을 하나 이상 선택해 주세요.','error'); return; }
+  const items = [braille && '점자메뉴판', ramp && '경사로', sign && '쉬운 안내판', other && '기타'].filter(Boolean).join(', ');
   const ts = new Date().toLocaleString('ko-KR');
   setLoading('apply-btn', true, '신청 제출하기');
   try {
-    await fetch(SCRIPT_URL, { method:'POST', mode:'no-cors', body: JSON.stringify({type:'apply', name, addr, items, phone, memo, timestamp: ts}), headers:{'Content-Type':'application/json'} });
+    await fetch(SCRIPT_URL, { method:'POST', mode:'no-cors', body: JSON.stringify({type:'apply', name, addr, items, applyname, phone, memo, timestamp: ts}), headers:{'Content-Type':'application/json'} });
   } catch(e) {}
-  saveRecord({ type:'apply', name, addr, items, phone, memo, timestamp: ts });
+  saveRecord({ type:'apply', name, addr, items, applyname, phone, memo, timestamp: ts });
   showToast('apply-toast','✅ 신청이 접수되었습니다. 담당자가 확인 후 연락드릴게요!','success');
-  ['a_name','a_addr','a_phone','a_memo'].forEach(id => document.getElementById(id).value = '');
-  document.getElementById('a_braille').checked = false;
-  document.getElementById('a_ramp').checked = false;
+  ['a_name','a_addr','a_applyname','a_phone','a_memo'].forEach(id => document.getElementById(id).value = '');
+  ['a_braille','a_ramp','a_sign','a_other'].forEach(id => document.getElementById(id).checked = false);
   setLoading('apply-btn', false, '신청 제출하기');
 }
 
@@ -555,16 +606,21 @@ async function submitMonitor() {
   const r4 = document.getElementById('m_r4').value;
   const action = document.getElementById('m_action').value;
   const author = document.getElementById('m_author').value.trim();
+  const easysign = document.getElementById('m_easysign').checked;
+  const goodstaff = document.getElementById('m_goodstaff').checked;
+  const goodcase = document.getElementById('m_goodcase').checked;
   if (!place) { showToast('monitor-toast','장소명을 입력해 주세요.','error'); return; }
   if (!addr)  { showToast('monitor-toast','주소를 입력해 주세요.','error'); return; }
   if (!date)  { showToast('monitor-toast','날짜를 선택해 주세요.','error'); return; }
   if (!comment) { showToast('monitor-toast','종합 의견을 입력해 주세요.','error'); return; }
+  if (!author) { showToast('monitor-toast','기록자 이름을 입력해 주세요.','error'); return; }
+  const extras = [easysign && '쉬운 안내판 필요', goodstaff && '직원 응대 좋음', goodcase && '좋은 사례'].filter(Boolean).join(', ');
   const ts = new Date().toLocaleString('ko-KR');
   setLoading('monitor-btn', true, '기록 제출하기');
   try {
-    await fetch(SCRIPT_URL, { method:'POST', mode:'no-cors', body: JSON.stringify({type:'monitor', place, addr, date, r1, r2, r3, r4, action, comment, author, timestamp: ts}), headers:{'Content-Type':'application/json'} });
+    await fetch(SCRIPT_URL, { method:'POST', mode:'no-cors', body: JSON.stringify({type:'monitor', place, addr, date, r1, r2, r3, r4, action, comment, author, extras, timestamp: ts}), headers:{'Content-Type':'application/json'} });
   } catch(e) {}
-  saveRecord({ type:'monitor', name: place, addr, date, r1, r2, r3, r4, action, comment, author, timestamp: ts });
+  saveRecord({ type:'monitor', name: place, addr, date, r1, r2, r3, r4, action, comment, author, extras, goodcase, timestamp: ts });
   showToast('monitor-toast','✅ 기록이 저장되었습니다!','success');
   setLoading('monitor-btn', false, '기록 제출하기');
 }
@@ -616,6 +672,7 @@ function recordCard(r, idx) {
   let detail = '';
   if (r.type === 'apply') {
     detail = `
+      ${r.applyname ? `<div class="detail-row"><span class="detail-label">신청자</span><span class="detail-value">${r.applyname}</span></div>` : ''}
       ${r.items ? `<div class="detail-row"><span class="detail-label">신청 항목</span><span class="detail-value">${r.items}</span></div>` : ''}
       ${r.phone ? `<div class="detail-row"><span class="detail-label">연락처</span><span class="detail-value">${r.phone}</span></div>` : ''}
       ${r.memo ? `<div class="detail-row"><span class="detail-label">요청 메모</span><span class="detail-value">${r.memo}</span></div>` : ''}
@@ -631,6 +688,7 @@ function recordCard(r, idx) {
       ${r.date ? `<div class="detail-row"><span class="detail-label">점검 날짜</span><span class="detail-value">${r.date}</span></div>` : ''}
       ${ratings ? `<div class="detail-row"><span class="detail-label">항목 평가</span><span class="detail-value">${ratings}</span></div>` : ''}
       ${r.comment ? `<div class="detail-row"><span class="detail-label">종합 의견</span><span class="detail-value">${r.comment}</span></div>` : ''}
+      ${r.extras ? `<div class="detail-row"><span class="detail-label">추가 확인</span><span class="detail-value">${r.extras}</span></div>` : ''}
       ${r.author ? `<div class="detail-row"><span class="detail-label">기록자</span><span class="detail-value">${r.author}</span></div>` : ''}
     `;
   }
@@ -793,122 +851,100 @@ function getMarkerColor(rec) {
 }
 
 function renderMap() {
-  {
-    const allRecords = getRecords();
-    const mapRecords = allRecords.filter(r => r.addr && (
-      r.type === 'apply' ||
-      (r.type === 'monitor' && r.action !== '양호') ||
-      (r.type === 'monitor' && r.action === '양호')
-    ));
-    const container = document.getElementById('kakao-map');
+  const allRecords = getRecords();
+  const mapRecords = allRecords.filter(r => r.addr);
+  const container = document.getElementById('kakao-map');
+  const listEl = document.getElementById('map-list');
 
-    // 지도 초기화
-    const options = { center: new kakao.maps.LatLng(37.5726, 126.9793), level: 5 };
-    if (!mapInstance) {
-      mapInstance = new kakao.maps.Map(container, options);
-    } else {
-      mapInstance.relayout();
-    }
+  mapInstance = new kakao.maps.Map(container, {
+    center: new kakao.maps.LatLng(37.5726, 126.9793),
+    level: 6
+  });
 
-    // 현재 위치 표시
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(function(pos) {
-        const myPos = new kakao.maps.LatLng(pos.coords.latitude, pos.coords.longitude);
-        const mySvg = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20">
-          <circle cx="10" cy="10" r="8" fill="#6366f1" stroke="white" stroke-width="2" opacity="0.9"/>
-          <circle cx="10" cy="10" r="3" fill="white"/>
-        </svg>`;
-        const myImg = new kakao.maps.MarkerImage(
-          'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(mySvg),
-          new kakao.maps.Size(20, 20),
-          { offset: new kakao.maps.Point(10, 10) }
-        );
-        new kakao.maps.Marker({ map: mapInstance, position: myPos, image: myImg, zIndex: 10 });
-        mapInstance.setCenter(myPos);
-      });
-    }
+  mapMarkers.forEach(m => m.setMap(null));
+  mapMarkers = [];
 
-    // 기존 마커 제거
-    mapMarkers.forEach(m => m.setMap(null));
-    mapMarkers = [];
-
-    const listEl = document.getElementById('map-list');
-    if (mapRecords.length === 0) {
-      listEl.innerHTML = '<div class="empty-state"><div class="empty-icon">📍</div>아직 기록이 없어요</div>';
-      return;
-    }
-
-    const geocoder = new kakao.maps.services.Geocoder();
-
-    // 범례
-    listEl.innerHTML = `<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;font-size:12px;color:var(--text-muted);align-items:center;padding:10px 12px;background:var(--bg);border-radius:8px">
-      <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:50%;background:#1a8c6e;display:inline-block"></span> 보급 신청</span>
-      <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:50%;background:#dc2626;display:inline-block"></span> 조치 필요</span>
-      <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:50%;background:#d97706;display:inline-block"></span> 추후 확인</span>
-      <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:50%;background:#3b82f6;display:inline-block"></span> 모니터링 완료</span>
-      <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:50%;background:#6366f1;display:inline-block"></span> 내 위치</span>
-    </div>`;
-
-    mapRecords.forEach((rec) => {
-      const markerColor = getMarkerColor(rec);
-
-      const typeLabel = rec.type === 'apply' ? '보급 신청'
-        : rec.action === '조치 필요' ? '조치 필요'
-        : rec.action === '추후 확인' ? '추후 확인'
-        : '모니터링 완료';
-
-      const tagStyle = rec.type === 'apply' ? 'tag tag-apply'
-        : rec.action === '조치 필요' ? 'tag tag-action'
-        : rec.action === '추후 확인' ? 'tag tag-fair'
-        : 'tag tag-monitor';
-
-      const item = document.createElement('div');
-      item.className = 'record-item';
-      item.style.cursor = 'pointer';
-      item.innerHTML = `
-        <div class="rec-top">
-          <span style="width:10px;height:10px;border-radius:50%;background:${markerColor};display:inline-block;margin-right:6px;flex-shrink:0"></span>
-          <span class="rec-name">${rec.name}</span>
-          <span class="rec-date">${rec.timestamp}</span>
-        </div>
-        <div class="rec-addr">${rec.addr}</div>
-        <div class="rec-tags">
-          <span class="${tagStyle}">${typeLabel}</span>
-          ${rec.items ? `<span class="tag" style="background:#f0fdf4;color:#166534">${rec.items}</span>` : ''}
-        </div>`;
-      listEl.appendChild(item);
-
-      geocoder.addressSearch(rec.addr, function(result, status) {
-        if (status === kakao.maps.services.Status.OK) {
-          const coords = new kakao.maps.LatLng(result[0].y, result[0].x);
-          const marker = new kakao.maps.Marker({
-            map: mapInstance,
-            position: coords,
-            image: makeMarkerImage(markerColor)
-          });
-          mapMarkers.push(marker);
-
-          const info = new kakao.maps.InfoWindow({
-            content: `<div style="padding:8px 12px;font-size:13px;font-family:'Noto Sans KR',sans-serif;min-width:130px">
-              <strong>${rec.name}</strong><br>
-              <span style="color:${markerColor};font-size:12px;font-weight:600">${typeLabel}</span>
-              ${rec.items ? `<br><span style="color:#6b7280;font-size:12px">${rec.items}</span>` : ''}
-            </div>`
-          });
-          kakao.maps.event.addListener(marker, 'click', function() { info.open(mapInstance, marker); });
-
-          item.addEventListener('click', function() {
-            mapInstance.setCenter(coords);
-            mapInstance.setLevel(3);
-            info.open(mapInstance, marker);
-            container.scrollIntoView({ behavior: 'smooth' });
-          });
-        }
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(function(pos) {
+      const myPos = new kakao.maps.LatLng(pos.coords.latitude, pos.coords.longitude);
+      const mySvg = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><circle cx="10" cy="10" r="8" fill="#6366f1" stroke="white" stroke-width="2"/><circle cx="10" cy="10" r="3" fill="white"/></svg>';
+      new kakao.maps.Marker({
+        map: mapInstance, position: myPos, zIndex: 10,
+        image: new kakao.maps.MarkerImage('data:image/svg+xml;charset=utf-8,'+encodeURIComponent(mySvg), new kakao.maps.Size(20,20), {offset: new kakao.maps.Point(10,10)})
       });
     });
   }
-}
 
+  listEl.innerHTML = '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;font-size:12px;color:var(--text-muted);align-items:center;padding:10px 12px;background:var(--bg);border-radius:8px">'
+    + '<span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:50%;background:#1a8c6e;display:inline-block"></span> 보급 신청</span>'
+    + '<span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:50%;background:#dc2626;display:inline-block"></span> 조치 필요</span>'
+    + '<span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:50%;background:#d97706;display:inline-block"></span> 추후 확인</span>'
+    + '<span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:50%;background:#3b82f6;display:inline-block"></span> 모니터링 완료</span>'
+    + '</div><div id="map-record-list"></div>';
+
+  const recordListEl = document.getElementById('map-record-list');
+
+  if (mapRecords.length === 0) {
+    recordListEl.innerHTML = '<div class="empty-state"><div class="empty-icon">📍</div>아직 기록이 없어요</div>';
+    return;
+  }
+
+  const geocoder = new kakao.maps.services.Geocoder();
+
+  mapRecords.forEach(function(rec, idx) {
+    const markerColor = getMarkerColor(rec);
+    const typeLabel = rec.type === 'apply' ? '보급 신청'
+      : rec.action === '조치 필요' ? '조치 필요'
+      : rec.action === '추후 확인' ? '추후 확인'
+      : '모니터링 완료';
+    const tagStyle = rec.type === 'apply' ? 'tag tag-apply'
+      : rec.action === '조치 필요' ? 'tag tag-action'
+      : rec.action === '추후 확인' ? 'tag tag-fair'
+      : 'tag tag-monitor';
+
+    const item = document.createElement('div');
+    item.className = 'record-item';
+    item.style.cursor = 'pointer';
+    item.innerHTML = '<div class="rec-top">'
+      + '<span style="width:10px;height:10px;border-radius:50%;background:'+markerColor+';display:inline-block;margin-right:6px;flex-shrink:0"></span>'
+      + '<span class="rec-name">'+rec.name+'</span>'
+      + '</div>'
+      + '<div class="rec-addr">'+rec.addr+'</div>'
+      + '<div class="rec-tags"><span class="'+tagStyle+'">'+typeLabel+'</span>'
+      + (rec.items ? '<span class="tag" style="background:#f0fdf4;color:#166534">'+rec.items+'</span>' : '')
+      + '</div>';
+    recordListEl.appendChild(item);
+
+    geocoder.addressSearch(rec.addr, function(result, status) {
+      if (status !== kakao.maps.services.Status.OK) return;
+      const coords = new kakao.maps.LatLng(result[0].y, result[0].x);
+      const marker = new kakao.maps.Marker({
+        map: mapInstance,
+        position: coords,
+        image: makeMarkerImage(markerColor)
+      });
+      mapMarkers.push(marker);
+
+      const infoHtml = '<div style="padding:8px 12px;font-size:13px;font-family:Noto Sans KR,sans-serif;min-width:130px">'
+        + '<strong>'+rec.name+'</strong><br>'
+        + '<span style="color:'+markerColor+';font-size:12px;font-weight:600">'+typeLabel+'</span>'
+        + (rec.items ? '<br><span style="color:#6b7280;font-size:12px">'+rec.items+'</span>' : '')
+        + '</div>';
+      const info = new kakao.maps.InfoWindow({ content: infoHtml });
+
+      kakao.maps.event.addListener(marker, 'click', function() {
+        info.open(mapInstance, marker);
+      });
+
+      item.addEventListener('click', function() {
+        mapInstance.setCenter(coords);
+        mapInstance.setLevel(3);
+        info.open(mapInstance, marker);
+        container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    });
+  });
+}
 // ── 초기화 ────────────────────────────────────────
 
 // 샘플 데이터 (처음 실행 시 한 번만)
