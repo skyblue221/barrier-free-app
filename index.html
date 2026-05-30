@@ -1210,52 +1210,9 @@ function renderMap() {
 }
 // ── 초기화 ────────────────────────────────────────
 
-// 샘플 데이터 (처음 실행 시 한 번만)
-function loadSampleData() {
-  if (localStorage.getItem('sampleLoaded')) return;
-  const samples = [
-    {
-      type: 'apply', name: '삼청동 수제비', addr: '서울 종로구 삼청로 101',
-      items: '점자메뉴판', phone: '02-123-4567', memo: '단골 시각장애인 손님이 계세요',
-      timestamp: '2026. 5. 20. 오전 10:30:00', action: ''
-    },
-    {
-      type: 'apply', name: '인사동 쌈지길 카페', addr: '서울 종로구 인사동길 44',
-      items: '경사로', phone: '02-234-5678', memo: '입구 턱이 높아서 휠체어 진입이 어려워요',
-      timestamp: '2026. 5. 21. 오후 2:15:00', action: ''
-    },
-    {
-      type: 'apply', name: '낙원상가 분식집', addr: '서울 종로구 삼일대로 428',
-      items: '점자메뉴판, 경사로', phone: '010-3456-7890', memo: '',
-      timestamp: '2026. 5. 22. 오전 11:00:00', action: ''
-    },
-    {
-      type: 'monitor', name: '통인시장 입구', addr: '서울 종로구 자하문로15길 18',
-      date: '2026-05-23', r1: '미흡', r2: '보통', r3: '미흡', r4: '보통',
-      action: '조치 필요', comment: '점자메뉴판 없는 가게가 대부분이고, 일부 입구에 턱이 있어 휠체어 진입 어려움. 화장실 접근성도 개선 필요.',
-      author: '김모니터', timestamp: '2026. 5. 23. 오후 3:00:00'
-    },
-    {
-      type: 'monitor', name: '북촌한옥마을 카페거리', addr: '서울 종로구 북촌로 31',
-      date: '2026-05-24', r1: '보통', r2: '좋음', r3: '좋음', r4: '좋음',
-      action: '양호', comment: '경사로 설치가 잘 되어 있고 안내판도 읽기 쉬움. 점자메뉴판은 일부 카페만 구비.',
-      author: '이모니터', timestamp: '2026. 5. 24. 오전 10:00:00'
-    },
-    {
-      type: 'monitor', name: '광화문 교보빌딩 앞 상가', addr: '서울 종로구 종로 1',
-      date: '2026-05-25', r1: '미흡', r2: '좋음', r3: '좋음', r4: '좋음',
-      action: '추후 확인', comment: '건물 접근성은 우수하나 내부 상가 점자메뉴판 미비. 담당자 연락 후 추후 확인 예정.',
-      author: '박모니터', timestamp: '2026. 5. 25. 오후 1:30:00'
-    }
-  ];
-  // 역순으로 넣어야 최신순 정렬
-  const existing = getRecords();
-  localStorage.setItem('records', JSON.stringify([...samples.reverse(), ...existing]));
-  localStorage.setItem('sampleLoaded', 'true');
-}
+// 샘플 데이터 없음 (실제 운영용)
 
 document.getElementById('m_date').valueAsDate = new Date();
-loadSampleData();
 updateDashboard();
 loadSettingsUI();
 </script>
