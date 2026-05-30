@@ -91,6 +91,18 @@
   .stat-card.amber .stat-num { color: var(--fair); }
   .stat-card.green .stat-num { color: var(--good); }
   .stat-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.08); transition: all 0.15s; }
+  .chart-row { margin-bottom: 12px; }
+  .chart-row:last-child { margin-bottom: 0; }
+  .chart-label { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 5px; }
+  .chart-label span:first-child { color: var(--text); }
+  .chart-label span:last-child { color: var(--text-muted); font-weight: 500; }
+  .chart-bar-bg { background: var(--bg); border-radius: 4px; height: 8px; overflow: hidden; }
+  .chart-bar { height: 8px; border-radius: 4px; background: var(--teal); transition: width 0.6s ease; }
+  .good-case-item { padding: 12px 0; border-bottom: 1px solid var(--border); }
+  .good-case-item:last-child { border-bottom: none; }
+  .good-case-name { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+  .good-case-comment { font-size: 13px; color: var(--text-muted); line-height: 1.6; }
+  .good-case-meta { font-size: 12px; color: var(--text-muted); margin-top: 6px; }
 
   /* 전체 기록 목록 */
   .record-item { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 14px; margin-bottom: 8px; }
@@ -161,8 +173,8 @@
 <div class="lock-screen" id="lock-screen">
   <div class="lock-card">
     <div class="lock-icon">🔒</div>
-    <div class="lock-title">모니터링단 전용</div>
-    <div class="lock-sub">4자리 비밀번호를 입력해 주세요</div>
+    <div class="lock-title" id="lock-title">모니터링단 전용</div>
+    <div class="lock-sub" id="lock-sub">4자리 비밀번호를 입력해 주세요</div>
     <div class="pin-dots">
       <div class="pin-dot" id="dot0"></div>
       <div class="pin-dot" id="dot1"></div>
@@ -236,6 +248,14 @@
     </div>
   </div>
   <div class="card">
+    <div class="card-title">유형별 현황</div>
+    <div id="type-chart"></div>
+  </div>
+  <div class="card">
+    <div class="card-title">⭐ 좋은 사례</div>
+    <div id="good-cases-list"><div class="empty-state"><div class="empty-icon">⭐</div>아직 좋은 사례가 없어요</div></div>
+  </div>
+  <div class="card">
     <div class="card-title">최근 기록</div>
     <div id="recent-list"><div class="empty-state"><div class="empty-icon">📭</div>아직 기록이 없어요</div></div>
   </div>
@@ -243,7 +263,11 @@
 
 <!-- 신청하기 -->
 <div id="apply" class="section">
-  <div class="notice">점자메뉴판 또는 경사로 보급을 원하시는 상점·시설을 신청해 주세요.<br>담당자가 확인 후 연락드립니다.</div>
+  <div class="notice">
+    <strong>여기도 있으면 좋겠어요!</strong><br>
+    지역주민 누구나 점자메뉴판, 경사로, 쉬운 안내판 등 접근성 개선이 필요한 장소를 알려줄 수 있어요.<br>
+    <span style="display:inline-block;margin-top:6px;font-size:12px;background:rgba(26,140,110,0.12);padding:4px 10px;border-radius:12px;color:#1a5c4a">경사로는 현장 확인 후 지원 가능 여부를 안내드립니다.</span>
+  </div>
   <div class="card">
     <div class="card-title">상점 정보</div>
     <div class="field">
@@ -280,12 +304,16 @@
         </div>
       </label>
       <label class="check-item">
-        <input type="checkbox" id="a_other" />
+        <input type="checkbox" id="a_other" onchange="toggleOtherInput(this)" />
         <div class="item-info">
           <div class="item-name">💬 기타</div>
           <div class="item-desc">위 항목 외 접근성 관련 지원이 필요한 경우</div>
         </div>
       </label>
+    </div>
+    <div id="other-input-wrap" style="display:none;margin-top:10px">
+      <div class="card-title" style="margin-bottom:8px">기타 내용</div>
+      <textarea id="a_other_detail" placeholder="기타를 선택했다면 필요한 내용을 적어주세요." style="min-height:72px"></textarea>
     </div>
   </div>
   <div class="card">
@@ -471,7 +499,10 @@
 
 <script>
 // ── 설정 ──────────────────────────────────────────
-const MONITOR_PIN = '7051';
+// ── 비밀번호 설정 (변경 시 아래 숫자만 수정) ────────────
+const MONITOR_PIN  = '7051';   // 모니터링단 비번
+const MANAGER_PIN  = '0517';   // 담당자 비번
+// ───────────────────────────────────────────────────────
 let SCRIPT_URL = localStorage.getItem('scriptUrl') || 'https://script.google.com/macros/s/AKfycbxBQWn2adwedy94MWxF3NGjyEnnMHde4vm-6VRXP1PEVGr6mDKQbQm7RFG3vnmrcAQ4/exec';
 
 // ── 로컬 스토리지 데이터 ──────────────────────────
@@ -496,16 +527,32 @@ function switchTab(id, el) {
 }
 
 // ── PIN 잠금 ──────────────────────────────────────
-let pinValue = '', monitorUnlocked = false, pendingTabEl = null;
+let pinValue = '', monitorUnlocked = false, managerUnlocked = false, pendingTabEl = null, pendingPinType = 'monitor';
 
 function requirePin(el) {
   if (monitorUnlocked) { switchTab('monitor', el); return; }
   pendingTabEl = el;
+  pendingPinType = 'monitor';
   pinValue = '';
   updateDots();
+  document.getElementById('lock-title').textContent = '모니터링단 전용';
+  document.getElementById('lock-sub').textContent = '4자리 비밀번호를 입력해 주세요';
   document.getElementById('lock-error').textContent = '';
   document.getElementById('lock-screen').classList.add('show');
 }
+
+function requireManagerPin(callback) {
+  if (managerUnlocked) { callback(); return; }
+  pendingPinType = 'manager';
+  pendingManagerCallback = callback;
+  pinValue = '';
+  updateDots();
+  document.getElementById('lock-title').textContent = '담당자 확인';
+  document.getElementById('lock-sub').textContent = '담당자 비밀번호를 입력해 주세요';
+  document.getElementById('lock-error').textContent = '';
+  document.getElementById('lock-screen').classList.add('show');
+}
+let pendingManagerCallback = null;
 function pinInput(num) {
   if (pinValue.length >= 4) return;
   pinValue += num; updateDots();
@@ -526,14 +573,26 @@ function closeLock() {
 }
 
 function checkPin() {
-  if (pinValue === MONITOR_PIN) {
-    monitorUnlocked = true;
-    document.getElementById('lock-screen').classList.remove('show');
-    switchTab('monitor', pendingTabEl);
+  if (pendingPinType === 'manager') {
+    if (pinValue === MANAGER_PIN) {
+      managerUnlocked = true;
+      document.getElementById('lock-screen').classList.remove('show');
+      if (pendingManagerCallback) { pendingManagerCallback(); pendingManagerCallback = null; }
+    } else {
+      for (let i = 0; i < 4; i++) document.getElementById('dot' + i).classList.add('error');
+      document.getElementById('lock-error').textContent = '비밀번호가 맞지 않아요.';
+      setTimeout(() => { pinValue = ''; updateDots(); }, 800);
+    }
   } else {
-    for (let i = 0; i < 4; i++) document.getElementById('dot' + i).classList.add('error');
-    document.getElementById('lock-error').textContent = '비밀번호가 맞지 않아요. 다시 시도해 주세요.';
-    setTimeout(() => { pinValue = ''; updateDots(); }, 800);
+    if (pinValue === MONITOR_PIN) {
+      monitorUnlocked = true;
+      document.getElementById('lock-screen').classList.remove('show');
+      switchTab('monitor', pendingTabEl);
+    } else {
+      for (let i = 0; i < 4; i++) document.getElementById('dot' + i).classList.add('error');
+      document.getElementById('lock-error').textContent = '비밀번호가 맞지 않아요. 다시 시도해 주세요.';
+      setTimeout(() => { pinValue = ''; updateDots(); }, 800);
+    }
   }
 }
 
@@ -547,11 +606,39 @@ function selectPill(val) {
   ['yes','no','follow'].forEach(v => { const el = document.getElementById('pill_' + v); el.className = 'pill'; if (v === val) el.classList.add('active-' + v); });
   document.getElementById('m_action').value = val === 'yes' ? '조치 필요' : val === 'no' ? '양호' : '추후 확인';
 }
+let selectedPhotos = [];
+
+function toggleOtherInput(checkbox) {
+  const wrap = document.getElementById('other-input-wrap');
+  wrap.style.display = checkbox.checked ? 'block' : 'none';
+  if (!checkbox.checked) document.getElementById('a_other_detail').value = '';
+}
+
 function previewPhotos(input) {
-  const grid = document.getElementById('photo-grid'); grid.innerHTML = '';
+  const grid = document.getElementById('photo-grid');
+  grid.innerHTML = '';
+  selectedPhotos = [];
   Array.from(input.files).slice(0, 6).forEach(file => {
-    const img = document.createElement('img'); img.className = 'photo-thumb'; img.src = URL.createObjectURL(file); grid.appendChild(img);
+    const img = document.createElement('img');
+    img.className = 'photo-thumb';
+    img.src = URL.createObjectURL(file);
+    grid.appendChild(img);
+    selectedPhotos.push(file);
   });
+  const count = selectedPhotos.length;
+  document.querySelector('.photo-drop p').textContent = count > 0 ? `${count}장 선택됨` : '탭해서 사진 추가하기';
+}
+
+async function filesToBase64(files) {
+  return Promise.all(files.map(file => new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve({
+      data: reader.result.split(',')[1],
+      mimeType: file.type
+    });
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  })));
 }
 
 // ── 토스트 / 로딩 ─────────────────────────────────
@@ -581,7 +668,9 @@ async function submitApply() {
   if (!applyname) { showToast('apply-toast','이름 또는 닉네임을 입력해 주세요.','error'); return; }
   if (!phone) { showToast('apply-toast','연락처를 입력해 주세요.','error'); return; }
   if (!braille && !ramp && !sign && !other) { showToast('apply-toast','신청 항목을 하나 이상 선택해 주세요.','error'); return; }
-  const items = [braille && '점자메뉴판', ramp && '경사로', sign && '쉬운 안내판', other && '기타'].filter(Boolean).join(', ');
+  const otherDetail = document.getElementById('a_other_detail').value.trim();
+  const otherLabel = other ? (otherDetail ? '기타(' + otherDetail + ')' : '기타') : '';
+  const items = [braille && '점자메뉴판', ramp && '경사로', sign && '쉬운 안내판', otherLabel].filter(Boolean).join(', ');
   const ts = new Date().toLocaleString('ko-KR');
   setLoading('apply-btn', true, '신청 제출하기');
   try {
@@ -589,8 +678,9 @@ async function submitApply() {
   } catch(e) {}
   saveRecord({ type:'apply', name, addr, items, applyname, phone, memo, timestamp: ts });
   showToast('apply-toast','✅ 신청이 접수되었습니다. 담당자가 확인 후 연락드릴게요!','success');
-  ['a_name','a_addr','a_applyname','a_phone','a_memo'].forEach(id => document.getElementById(id).value = '');
+  ['a_name','a_addr','a_applyname','a_phone','a_memo','a_other_detail'].forEach(id => document.getElementById(id).value = '');
   ['a_braille','a_ramp','a_sign','a_other'].forEach(id => document.getElementById(id).checked = false);
+  document.getElementById('other-input-wrap').style.display = 'none';
   setLoading('apply-btn', false, '신청 제출하기');
 }
 
@@ -617,11 +707,38 @@ async function submitMonitor() {
   const extras = [easysign && '쉬운 안내판 필요', goodstaff && '직원 응대 좋음', goodcase && '좋은 사례'].filter(Boolean).join(', ');
   const ts = new Date().toLocaleString('ko-KR');
   setLoading('monitor-btn', true, '기록 제출하기');
+
+  // 사진 base64 변환
+  let photos = [];
+  if (selectedPhotos.length > 0) {
+    try {
+      photos = await filesToBase64(selectedPhotos);
+    } catch(e) {
+      console.error('사진 변환 오류', e);
+    }
+  }
+
   try {
-    await fetch(SCRIPT_URL, { method:'POST', mode:'no-cors', body: JSON.stringify({type:'monitor', place, addr, date, r1, r2, r3, r4, action, comment, author, extras, timestamp: ts}), headers:{'Content-Type':'application/json'} });
+    await fetch(SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      body: JSON.stringify({
+        type: 'monitor', place, addr, date,
+        r1, r2, r3, r4, action, comment, author, extras,
+        photos, timestamp: ts
+      }),
+      headers: { 'Content-Type': 'application/json' }
+    });
   } catch(e) {}
+
   saveRecord({ type:'monitor', name: place, addr, date, r1, r2, r3, r4, action, comment, author, extras, goodcase, timestamp: ts });
-  showToast('monitor-toast','✅ 기록이 저장되었습니다!','success');
+  showToast('monitor-toast', photos.length > 0 ? `✅ 기록과 사진 ${photos.length}장이 저장되었습니다!` : '✅ 기록이 저장되었습니다!', 'success');
+
+  // 폼 초기화
+  selectedPhotos = [];
+  document.getElementById('photo-grid').innerHTML = '';
+  document.querySelector('.photo-drop p').textContent = '탭해서 사진 추가하기';
+  document.getElementById('m_photos').value = '';
   setLoading('monitor-btn', false, '기록 제출하기');
 }
 
@@ -632,10 +749,75 @@ function updateDashboard() {
   document.getElementById('st-action').textContent = records.filter(r => r.action === '조치 필요').length;
   document.getElementById('st-apply').textContent = records.filter(r => r.type === 'apply').length;
   document.getElementById('st-good').textContent = records.filter(r => r.action === '양호').length;
+
+  // 유형별 현황 차트
+  renderTypeChart(records);
+
+  // 좋은 사례
+  renderGoodCases(records);
+
+  // 최근 기록
   const recent = records.slice(0, 5);
   const el = document.getElementById('recent-list');
   if (recent.length === 0) { el.innerHTML = '<div class="empty-state"><div class="empty-icon">📭</div>아직 기록이 없어요</div>'; return; }
   el.innerHTML = recent.map((r, i) => recordCard(r, 'home-' + i)).join('');
+}
+
+function renderTypeChart(records) {
+  const el = document.getElementById('type-chart');
+  if (!el) return;
+
+  // 신청 항목별 카운트
+  const counts = {};
+  records.forEach(r => {
+    if (r.type === 'apply' && r.items) {
+      r.items.split(', ').forEach(item => {
+        counts[item] = (counts[item] || 0) + 1;
+      });
+    }
+    if (r.type === 'monitor' && r.extras) {
+      r.extras.split(', ').forEach(item => {
+        counts[item] = (counts[item] || 0) + 1;
+      });
+    }
+  });
+
+  const entries = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+  if (entries.length === 0) {
+    el.innerHTML = '<div class="empty-state" style="padding:20px"><div class="empty-icon">📊</div>아직 데이터가 없어요</div>';
+    return;
+  }
+
+  const max = entries[0][1];
+  el.innerHTML = entries.map(([label, count]) => `
+    <div class="chart-row">
+      <div class="chart-label">
+        <span>${label}</span>
+        <span>${count}</span>
+      </div>
+      <div class="chart-bar-bg">
+        <div class="chart-bar" style="width:${Math.round(count/max*100)}%;background:${
+          label.includes('조치') || label.includes('필요') ? '#dc2626' :
+          label.includes('좋음') || label.includes('좋은') ? '#16a34a' : 'var(--teal)'
+        }"></div>
+      </div>
+    </div>`).join('');
+}
+
+function renderGoodCases(records) {
+  const el = document.getElementById('good-cases-list');
+  if (!el) return;
+  const goodCases = records.filter(r => r.type === 'monitor' && r.goodcase);
+  if (goodCases.length === 0) {
+    el.innerHTML = '<div class="empty-state" style="padding:20px"><div class="empty-icon">⭐</div>아직 좋은 사례가 없어요</div>';
+    return;
+  }
+  el.innerHTML = goodCases.map(r => `
+    <div class="good-case-item">
+      <div class="good-case-name">⭐ ${r.name}</div>
+      <div class="good-case-comment">${r.comment || ''}</div>
+      <div class="good-case-meta">${r.addr} · ${r.author || ''} · ${r.date || ''}</div>
+    </div>`).join('');
 }
 
 // ── 홈 카드 클릭 → 기록 탭 이동 ─────────────────────
@@ -665,7 +847,12 @@ function recordCard(r, idx) {
     : '<span class="tag tag-monitor">모니터링</span>';
   const actionTag = r.action === '조치 필요' ? '<span class="tag tag-action">조치 필요</span>'
     : r.action === '양호' ? '<span class="tag tag-good">양호</span>'
-    : r.action === '추후 확인' ? '<span class="tag tag-fair">추후 확인</span>' : '';
+    : r.action === '추후 확인' ? '<span class="tag tag-fair">추후 확인</span>'
+    : r.action === '신청 접수' ? '<span class="tag tag-apply">신청 접수</span>'
+    : r.action === '검토 중' ? '<span class="tag" style="background:#f3e8ff;color:#7c3aed">검토 중</span>'
+    : r.action === '보급 완료' ? '<span class="tag tag-good">보급 완료 ✓</span>'
+    : r.action === '조치 완료' ? '<span class="tag tag-good">조치 완료 ✓</span>'
+    : '';
   const itemsTag = r.items ? `<span class="tag" style="background:#f0fdf4;color:#166534">${r.items}</span>` : '';
 
   // 상세 내용 (신청 / 모니터링 구분)
@@ -693,7 +880,7 @@ function recordCard(r, idx) {
     `;
   }
 
-  return `<div class="record-item" onclick="toggleDetail('detail-${idx}', this)">
+  return `<div class="record-item" data-ts="${r.timestamp}" onclick="toggleDetail('detail-${idx}', this)">
     <div class="rec-top">
       <span class="rec-name">${r.name}</span>
       <div style="display:flex;align-items:center;gap:4px;margin-left:auto">
@@ -703,8 +890,53 @@ function recordCard(r, idx) {
     </div>
     <div class="rec-addr">${r.addr}</div>
     <div class="rec-tags">${typeTag}${actionTag}${itemsTag}</div>
-    <div class="record-detail" id="detail-${idx}">${detail}</div>
+    <div class="record-detail" id="detail-${idx}">
+      ${detail}
+      ${statusDropdown(r)}
+    </div>
   </div>`;
+}
+
+function statusDropdown(r) {
+  const ts = (r.timestamp || '').replace(/'/g, "\\'");
+  return `<select class="status-select" onchange="changeStatus('${ts}', this.value)" onclick="event.stopPropagation()" style="font-family:'Noto Sans KR',sans-serif;font-size:12px;padding:4px 8px;border:1px solid var(--border);border-radius:6px;background:var(--white);color:var(--text);cursor:pointer;margin-top:8px">
+    <option value="">── 상태 변경 (담당자)</option>
+    <option value="신청 접수">신청 접수</option>
+    <option value="검토 중">검토 중</option>
+    <option value="보급 완료">보급 완료</option>
+    <option value="조치 필요">조치 필요</option>
+    <option value="조치 완료">조치 완료</option>
+    <option value="추후 확인">추후 확인</option>
+    <option value="양호">양호</option>
+  </select>`;
+}
+
+function changeStatus(ts, newStatus) {
+  if (!newStatus) return;
+  requireManagerPin(function() {
+    const records = getRecords();
+    const realIdx = records.findIndex(r => r.timestamp === ts);
+    if (realIdx === -1) return;
+    records[realIdx].action = newStatus;
+    localStorage.setItem('records', JSON.stringify(records));
+    updateDashboard();
+    // 기록 탭이 열려있으면 갱신
+    const recSection = document.getElementById('records');
+    if (recSection && recSection.classList.contains('active')) {
+      renderRecords();
+    }
+    // 토스트는 신청/모니터링 탭 어디서든 보이도록 body에 붙이기
+    let toast = document.getElementById('status-toast');
+    if (!toast) {
+      toast = document.createElement('div');
+      toast.id = 'status-toast';
+      toast.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1a8c6e;color:white;padding:10px 20px;border-radius:8px;font-size:13px;font-family:Noto Sans KR,sans-serif;z-index:999;';
+      document.body.appendChild(toast);
+    }
+    toast.textContent = '✅ 상태가 [' + newStatus + ']로 변경되었습니다.';
+    toast.style.display = 'block';
+    setTimeout(() => { toast.style.display = 'none'; }, 3000);
+  });
 }
 
 function toggleDetail(detailId, card) {
