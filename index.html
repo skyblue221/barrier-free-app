@@ -513,18 +513,20 @@
     <div id="manager-auth-status" style="font-size:13px;color:var(--text-muted);margin-bottom:12px">🔒 인증되지 않았어요. 담당자 비번으로 로그인하면 개인정보와 상태 변경이 가능해요.</div>
     <button class="sec-btn primary" id="manager-auth-btn" onclick="toggleManagerAuth()">담당자 로그인</button>
   </div>
-  <div class="card">
-    <div class="card-title">Google 시트 연결</div>
-    <div id="sheet-status" class="settings-status connected">✅ 시트가 연결되어 있어요</div>
-    <p style="font-size:13px;color:var(--text-muted);margin-top:8px">신청 및 모니터링 기록이 Google 시트에 자동으로 저장됩니다.</p>
-    <button class="sec-btn primary" onclick="loadFromSheet()" style="margin-top:12px">📥 시트에서 불러오기</button>
-    <button class="sec-btn" onclick="testSheet()" style="margin-top:8px">테스트 전송</button>
-    <div id="settings-toast" class="toast" style="margin-top:10px"></div>
-  </div>
-  <div class="card">
-    <div class="card-title">앱 데이터</div>
-    <p style="font-size:13px;color:var(--text-muted);margin-bottom:12px">시트에서 불러온 후 로컬 데이터를 초기화할 수 있어요.</p>
-    <button class="sec-btn danger" onclick="clearAllData()">모든 기록 초기화</button>
+  <div id="manager-only-section" style="display:none">
+    <div class="card">
+      <div class="card-title">Google 시트 연결</div>
+      <div id="sheet-status" class="settings-status connected">✅ 시트가 연결되어 있어요</div>
+      <p style="font-size:13px;color:var(--text-muted);margin-top:8px">신청 및 모니터링 기록이 Google 시트에 자동으로 저장됩니다.</p>
+      <button class="sec-btn primary" onclick="loadFromSheet()" style="margin-top:12px">📥 시트에서 불러오기</button>
+      <button class="sec-btn" onclick="testSheet()" style="margin-top:8px">테스트 전송</button>
+      <div id="settings-toast" class="toast" style="margin-top:10px"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">앱 데이터</div>
+      <p style="font-size:13px;color:var(--text-muted);margin-bottom:12px">시트에서 불러온 후 로컬 데이터를 초기화할 수 있어요.</p>
+      <button class="sec-btn danger" onclick="clearAllData()">모든 기록 초기화</button>
+    </div>
   </div>
 </div>
 
@@ -1128,17 +1130,20 @@ function toggleManagerAuth() {
 function updateManagerAuthUI() {
   const status = document.getElementById('manager-auth-status');
   const btn = document.getElementById('manager-auth-btn');
+  const section = document.getElementById('manager-only-section');
   if (!status || !btn) return;
   if (managerUnlocked) {
     status.textContent = '✅ 담당자로 로그인되어 있어요. 개인정보와 상태 변경이 가능해요.';
     status.style.color = 'var(--good)';
     btn.textContent = '로그아웃';
     btn.className = 'sec-btn danger';
+    if (section) section.style.display = 'block';
   } else {
     status.textContent = '🔒 인증되지 않았어요. 담당자 비번으로 로그인하면 개인정보와 상태 변경이 가능해요.';
     status.style.color = 'var(--text-muted)';
     btn.textContent = '담당자 로그인';
     btn.className = 'sec-btn primary';
+    if (section) section.style.display = 'none';
   }
 }
 
