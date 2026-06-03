@@ -708,6 +708,7 @@ function requirePin(el) {
   document.getElementById('lock-sub').textContent = '4자리 비밀번호를 입력해 주세요';
   document.getElementById('lock-error').textContent = '';
   document.getElementById('lock-screen').classList.add('show');
+  document.addEventListener('keydown', handlePinKeyboard);
 }
 
 function requirePinForJournal(el) {
@@ -720,6 +721,7 @@ function requirePinForJournal(el) {
   document.getElementById('lock-sub').textContent = '4자리 비밀번호를 입력해 주세요';
   document.getElementById('lock-error').textContent = '';
   document.getElementById('lock-screen').classList.add('show');
+  document.addEventListener('keydown', handlePinKeyboard);
 }
 
 function requireManagerPin(callback) {
@@ -732,6 +734,7 @@ function requireManagerPin(callback) {
   document.getElementById('lock-sub').textContent = '담당자 비밀번호를 입력해 주세요';
   document.getElementById('lock-error').textContent = '';
   document.getElementById('lock-screen').classList.add('show');
+  document.addEventListener('keydown', handlePinKeyboard);
 }
 let pendingManagerCallback = null;
 function pinInput(num) {
@@ -762,6 +765,18 @@ function closeLock() {
   document.getElementById('lock-screen').classList.remove('show');
   pinValue = '';
   updateDots();
+  document.removeEventListener('keydown', handlePinKeyboard);
+}
+
+function handlePinKeyboard(e) {
+  if (!document.getElementById('lock-screen').classList.contains('show')) return;
+  if (e.key >= '0' && e.key <= '9') {
+    pinInput(e.key);
+  } else if (e.key === 'Backspace') {
+    pinDelete();
+  } else if (e.key === 'Escape') {
+    closeLock();
+  }
 }
 
 function checkPin() {
@@ -769,6 +784,7 @@ function checkPin() {
     if (pinValue === MANAGER_PIN) {
       managerUnlocked = true;
       document.getElementById('lock-screen').classList.remove('show');
+      document.removeEventListener('keydown', handlePinKeyboard);
       if (pendingManagerCallback) { pendingManagerCallback(); pendingManagerCallback = null; }
     } else {
       for (let i = 0; i < 4; i++) document.getElementById('dot' + i).classList.add('error');
@@ -779,6 +795,7 @@ function checkPin() {
     if (pinValue === MONITOR_PIN) {
       monitorUnlocked = true;
       document.getElementById('lock-screen').classList.remove('show');
+      document.removeEventListener('keydown', handlePinKeyboard);
       if (pendingPinType === 'journal') {
         switchTab('journal', pendingTabEl);
       } else {
