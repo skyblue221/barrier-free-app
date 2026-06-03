@@ -700,11 +700,15 @@ let pinValue = '', monitorUnlocked = false, managerUnlocked = false, pendingTabE
 
 function handlePinKeyboard(e) {
   if (!document.getElementById('lock-screen').classList.contains('show')) return;
-  if (e.key >= '0' && e.key <= '9') {
+  const digits = ['0','1','2','3','4','5','6','7','8','9'];
+  if (digits.includes(e.key)) {
+    e.preventDefault();
     pinInput(e.key);
-  } else if (e.key === 'Backspace') {
+  } else if (e.key === 'Backspace' || e.key === 'Delete') {
+    e.preventDefault();
     pinDelete();
   } else if (e.key === 'Escape') {
+    e.preventDefault();
     closeLock();
   }
 }
