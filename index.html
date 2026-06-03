@@ -698,6 +698,17 @@ function switchTab(id, el) {
 // ── PIN 잠금 ──────────────────────────────────────
 let pinValue = '', monitorUnlocked = false, managerUnlocked = false, pendingTabEl = null, pendingPinType = 'monitor';
 
+function handlePinKeyboard(e) {
+  if (!document.getElementById('lock-screen').classList.contains('show')) return;
+  if (e.key >= '0' && e.key <= '9') {
+    pinInput(e.key);
+  } else if (e.key === 'Backspace') {
+    pinDelete();
+  } else if (e.key === 'Escape') {
+    closeLock();
+  }
+}
+
 function requirePin(el) {
   if (monitorUnlocked) { switchTab('monitor', el); return; }
   pendingTabEl = el;
@@ -766,17 +777,6 @@ function closeLock() {
   pinValue = '';
   updateDots();
   document.removeEventListener('keydown', handlePinKeyboard);
-}
-
-function handlePinKeyboard(e) {
-  if (!document.getElementById('lock-screen').classList.contains('show')) return;
-  if (e.key >= '0' && e.key <= '9') {
-    pinInput(e.key);
-  } else if (e.key === 'Backspace') {
-    pinDelete();
-  } else if (e.key === 'Escape') {
-    closeLock();
-  }
 }
 
 function checkPin() {
