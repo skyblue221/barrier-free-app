@@ -643,10 +643,7 @@
 
   <!-- 활동 일지 -->
   <div id="monitor-journal" role="tabpanel" style="display:none">
-<!-- 작성 영역 -->
-  <div class="journal-full">
-    <div class="notice">그날 방문한 상점과 체크리스트가 자동으로 불러와져요. 활동 소감을 추가로 작성하고 제출하세요.</div>
-  </div>
+  <div class="notice" style="margin-bottom:12px">그날 방문한 상점과 체크리스트가 자동으로 불러와져요. 활동 소감을 추가로 작성하고 제출하세요.</div>
 
   <div class="card">
     <div class="card-title">활동 기본 정보</div>
@@ -700,29 +697,6 @@
     </div>
   </div>
 
-</div>
-
-<!-- 전체 기록 -->
-<div id="records" class="section" role="tabpanel" aria-label="전체 기록">
-  <div class="card" style="margin-bottom:14px">
-    <div style="display:flex;gap:8px;align-items:center" role="group" aria-label="기록 필터">
-      <label for="filter-type" class="sr-only" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)">유형 필터</label>
-      <select id="filter-type" onchange="renderRecords()" style="flex:1" aria-label="유형으로 필터">
-        <option value="">전체 유형</option>
-        <option value="apply">보급 신청</option>
-        <option value="monitor">모니터링</option>
-      </select>
-      <label for="filter-action" class="sr-only" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)">상태 필터</label>
-      <select id="filter-action" onchange="renderRecords()" style="flex:1" aria-label="상태로 필터">
-        <option value="">전체 상태</option>
-        <option value="조치 필요">조치 필요</option>
-        <option value="양호">양호</option>
-        <option value="추후 확인">추후 확인</option>
-      </select>
-    </div>
-  </div>
-  <div id="records-count" aria-live="polite" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)"></div>
-  <div id="records-list" role="list" aria-label="전체 기록 목록"></div>
 </div>
 
 <!-- 지도 -->
