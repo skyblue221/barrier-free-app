@@ -1441,28 +1441,7 @@ function renderJournalList() {
 // ── 대시보드 ──────────────────────────────────────
 function updateDashboard() {
   const records = getRecords();
-  const total = records.length;
-  const action = records.filter(r => r.action === '조치 필요').length;
-  const apply = records.filter(r => r.type === 'apply').length;
-  const good = records.filter(r => r.action === '양호').length;
-  document.getElementById('st-total').textContent = total;
-  document.getElementById('st-action').textContent = action;
-  document.getElementById('st-apply').textContent = apply;
-  document.getElementById('st-good').textContent = good;
-  // 카드 aria-label 업데이트
-  const tc = document.getElementById('stat-total-card');
-  const ac = document.getElementById('stat-action-card');
-  const apc = document.getElementById('stat-apply-card');
-  const gc = document.getElementById('stat-good-card');
-  if (tc) tc.setAttribute('aria-label', `전체 기록, ${total}건, 눌러서 목록 보기`);
-  if (ac) ac.setAttribute('aria-label', `조치 필요, ${action}건, 눌러서 목록 보기`);
-  if (apc) apc.setAttribute('aria-label', `보급 신청, ${apply}건, 눌러서 목록 보기`);
-  if (gc) gc.setAttribute('aria-label', `양호 판정, ${good}건, 눌러서 목록 보기`);
-
-  // 유형별 현황 차트
-  renderTypeChart(records);
-
-  // 미니 지도
+  // 미니 지도만 렌더 (통계 카드 제거됨)
   renderHomeMap(records);
 }
 
