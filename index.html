@@ -516,7 +516,7 @@
 
 </div>
 <!-- 모니터링 기록 -->
-<div id="monitor" class="section" role="tabpanel" aria-label="모니터링">
+<div id="monitor" class="section" style="padding-top:12px" role="tabpanel" aria-label="모니터링">
 
   <!-- 탭 전환 버튼 -->
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;background:var(--white);border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:16px;overflow:hidden">
@@ -525,7 +525,7 @@
   </div>
 
   <!-- 체크리스트 -->
-  <div id="monitor-checklist" role="tabpanel">
+  <div id="monitor-checklist" role="tabpanel" style="margin-top:0">
 <div class="notice">모니터링단 전용 화면입니다.<br>현장에서 점검한 내용을 기록해 주세요.</div>
   <div class="card">
     <div class="card-title">장소 정보</div>
@@ -647,7 +647,7 @@
   </div>
 
   <!-- 활동 일지 -->
-  <div id="monitor-journal" role="tabpanel" style="display:none;padding-top:0;margin-top:0">
+  <div id="monitor-journal" role="tabpanel" style="display:none;margin-top:0">
   <div class="notice" style="margin-bottom:12px">그날 방문한 상점과 체크리스트가 자동으로 불러와져요. 활동 소감을 추가로 작성하고 제출하세요.</div>
 
   <div class="card">
@@ -1161,7 +1161,7 @@ function switchMonitorTab(tab) {
     checkBtn.className = 'monitor-subtab';
     journalBtn.setAttribute('aria-selected', 'true');
     checkBtn.setAttribute('aria-selected', 'false');
-    initJournal();
+    setTimeout(initJournal, 50); // DOM 업데이트 후 호출
   }
 }
 
@@ -1260,15 +1260,11 @@ function saveJournalRecord(j) {
 }
 
 function initJournal() {
-  // 팀 셀렉트 최신화
-  updateJournalTeamSelect();
-  // 오늘 날짜 자동 설정
   const dateEl = document.getElementById('j_date');
-  if (!dateEl.value) {
-    dateEl.valueAsDate = new Date();
-  }
-  // 현재 시간 자동 설정
   const timeEl = document.getElementById('j_time');
+  if (!dateEl || !timeEl) return; // 아직 렌더 안 됐으면 중단
+  updateJournalTeamSelect();
+  if (!dateEl.value) dateEl.valueAsDate = new Date();
   if (!timeEl.value) {
     const now = new Date();
     timeEl.value = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
@@ -1278,10 +1274,13 @@ function initJournal() {
 }
 
 function loadJournalStores() {
-  const date = document.getElementById('j_date').value;
-  const teamName = document.getElementById('j_team').value;
+  const dateEl = document.getElementById('j_date');
+  const teamEl = document.getElementById('j_team');
   const wrap = document.getElementById('j_stores_wrap');
   const memberEl = document.getElementById('j_team_members');
+  if (!dateEl || !teamEl || !wrap) return; // 엘리먼트 없으면 중단
+  const date = dateEl.value;
+  const teamName = teamEl.value;
 
   // 팀원 안내 텍스트
   if (teamName) {
@@ -1396,9 +1395,9 @@ async function submitJournal() {
 }
 
 function renderJournalList() {
-  const journals = getJournals();
   const el = document.getElementById('journal-list');
   if (!el) return;
+  const journals = getJournals();
   if (journals.length === 0) {
     el.innerHTML = '<div class="empty-state"><div class="empty-icon" aria-hidden="true">📝</div>아직 작성된 일지가 없어요</div>';
     return;
