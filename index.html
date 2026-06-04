@@ -271,138 +271,257 @@
 
 <nav class="tabs" role="tablist" aria-label="메뉴">
   <button class="tab active" role="tab" aria-selected="true"  aria-controls="home"     onclick="switchTab('home',    this)">🏠 홈</button>
-  <button class="tab" role="tab"        aria-selected="false" aria-controls="apply"    onclick="switchTab('apply',   this)">📋 신청</button>
+  <button class="tab" role="tab"        aria-selected="false" aria-controls="apply"    onclick="switchTab('apply',   this)">📋 신청·추천</button>
   <button class="tab" role="tab"        aria-selected="false" aria-controls="monitor"  onclick="requirePin(this)">🔍 모니터링</button>
-  <button class="tab" role="tab"        aria-selected="false" aria-controls="journal"  onclick="requirePinForJournal(this)">📝 일지</button>
-  <button class="tab" role="tab"        aria-selected="false" aria-controls="records"  onclick="switchTab('records', this)">📄 기록</button>
   <button class="tab" role="tab"        aria-selected="false" aria-controls="map"      onclick="switchTab('map',     this)">🗺️ 지도</button>
   <button class="tab" role="tab"        aria-selected="false" aria-controls="settings" onclick="switchTab('settings',this)">⚙️ 설정</button>
 </nav>
 
 <!-- 홈 대시보드 -->
 <div id="home" class="section active" role="tabpanel" aria-label="홈 대시보드">
-  <div class="stat-grid" role="list" aria-label="현황 요약">
-    <div class="stat-card teal" onclick="goToRecords('','')" style="cursor:pointer" role="listitem" tabindex="0" aria-label="전체 기록, 0건, 눌러서 목록 보기" id="stat-total-card" onkeydown="if(event.key==='Enter')goToRecords('','')">
-      <div class="stat-label">전체 기록</div>
-      <div class="stat-num" id="st-total" aria-hidden="true">0</div>
-    </div>
-    <div class="stat-card red" onclick="goToRecords('','조치 필요')" style="cursor:pointer" role="listitem" tabindex="0" aria-label="조치 필요, 0건, 눌러서 목록 보기" id="stat-action-card" onkeydown="if(event.key==='Enter')goToRecords('','조치 필요')">
-      <div class="stat-label">조치 필요</div>
-      <div class="stat-num" id="st-action" aria-hidden="true">0</div>
-    </div>
-    <div class="stat-card amber" onclick="goToRecords('apply','')" style="cursor:pointer" role="listitem" tabindex="0" aria-label="보급 신청, 0건, 눌러서 목록 보기" id="stat-apply-card" onkeydown="if(event.key==='Enter')goToRecords('apply','')">
-      <div class="stat-label">보급 신청</div>
-      <div class="stat-num" id="st-apply" aria-hidden="true">0</div>
-    </div>
-    <div class="stat-card green" onclick="goToRecords('','양호')" style="cursor:pointer" role="listitem" tabindex="0" aria-label="양호 판정, 0건, 눌러서 목록 보기" id="stat-good-card" onkeydown="if(event.key==='Enter')goToRecords('','양호')">
-      <div class="stat-label">양호 판정</div>
-      <div class="stat-num" id="st-good" aria-hidden="true">0</div>
+
+  <!-- 소개 -->
+  <div class="card" style="background:linear-gradient(135deg,var(--teal-light) 0%,rgba(255,255,255,0.8) 100%);border-color:var(--teal-mid)">
+    <div style="font-size:18px;font-weight:700;color:var(--teal);margin-bottom:8px">우리 동네 배리어프리 🌿</div>
+    <div style="font-size:14px;color:#1a5c4a;line-height:1.8">
+      누구든 편하게 드나들 수 있는 가게를 함께 찾고, 만들어가요.<br>
+      좋은 가게는 추천하고, 필요한 곳은 신청해주세요.<br>
+      모니터링단이 직접 확인하고 기록합니다.
     </div>
   </div>
+
+  <!-- 시민용 바로가기 -->
   <div class="card">
-    <div class="card-title" id="type-chart-title">유형별 현황</div>
-    <div id="type-chart" role="list" aria-labelledby="type-chart-title" aria-live="polite"></div>
+    <div class="card-title">참여하기</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <button onclick="switchApplyTab('recommend')" style="padding:14px 10px;background:var(--teal-light);border:1.5px solid var(--teal-mid);border-radius:var(--radius-sm);cursor:pointer;font-family:'Noto Sans KR',sans-serif;font-size:13px;font-weight:700;color:var(--teal);line-height:1.6" aria-label="상점 추천하기로 이동">
+        🌟 상점 추천하기<br><span style="font-size:11px;font-weight:400;color:#1a5c4a">편한 가게를 소개해요</span>
+      </button>
+      <button onclick="switchApplyTab('apply')" style="padding:14px 10px;background:#fff8e1;border:1.5px solid #fdd835;border-radius:var(--radius-sm);cursor:pointer;font-family:'Noto Sans KR',sans-serif;font-size:13px;font-weight:700;color:#b8860b;line-height:1.6" aria-label="보급 신청하기로 이동">
+        📬 보급 신청하기<br><span style="font-size:11px;font-weight:400;color:#8a6500">설치가 필요한 곳을 알려요</span>
+      </button>
+    </div>
   </div>
+
+  <!-- 모니터링단용 바로가기 -->
+  <div class="card">
+    <div class="card-title">모니터링단</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <button onclick="requirePinHome('monitor')" style="padding:14px 10px;background:#e3f2fd;border:1.5px solid #90caf9;border-radius:var(--radius-sm);cursor:pointer;font-family:'Noto Sans KR',sans-serif;font-size:13px;font-weight:700;color:#1565c0;line-height:1.6" aria-label="모니터링 기록하기">
+        🔍 체크리스트<br><span style="font-size:11px;font-weight:400;color:#1565c0">모니터링 기록하기</span>
+      </button>
+      <button onclick="requirePinHome('journal')" style="padding:14px 10px;background:#f3e8ff;border:1.5px solid #ce93d8;border-radius:var(--radius-sm);cursor:pointer;font-family:'Noto Sans KR',sans-serif;font-size:13px;font-weight:700;color:#6a1b9a;line-height:1.6" aria-label="활동 일지 쓰기">
+        📝 활동 일지<br><span style="font-size:11px;font-weight:400;color:#6a1b9a">오늘 활동 기록하기</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- 지도 미리보기 -->
   <div class="card" style="padding:0;overflow:hidden">
     <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px 10px">
       <div class="card-title" style="margin-bottom:0">현황 지도</div>
-      <button onclick="switchTab('map', document.querySelector('.tab:nth-child(5)'))" style="font-size:12px;color:var(--teal);background:none;border:none;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">전체 보기 →</button>
+      <button onclick="switchTab('map', document.querySelector('[aria-controls=&quot;map&quot;]'))" style="font-size:12px;color:var(--teal);background:none;border:none;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">전체 보기 →</button>
     </div>
     <div id="home-map" style="width:100%;height:220px;"></div>
   </div>
-</div>
 
-<!-- 신청하기 -->
-<div id="apply" class="section" role="tabpanel" aria-label="신청하기">
-  <div class="notice">
-    <strong>여기도 있으면 좋겠어요!</strong><br>
-    지역주민 누구나 점자메뉴판, 경사로, 쉬운 안내판 등 접근성 개선이 필요한 장소를 알려줄 수 있어요.<br>
-    <span style="display:inline-block;margin-top:6px;font-size:12px;background:rgba(26,140,110,0.12);padding:4px 10px;border-radius:12px;color:#1a5c4a">경사로는 현장 확인 후 지원 가능 여부를 안내드립니다.</span>
-  </div>
-  <div class="card">
-    <div class="card-title">상점 정보</div>
-    <div class="field">
-      <label class="field-label">상호명<span class="req">*</span></label>
-      <input type="text" id="a_name" placeholder="예) 종로분식" / aria-label="상호명">
-    </div>
-    <div class="field">
-      <label class="field-label">주소<span class="req">*</span></label>
-      <input type="text" id="a_addr" placeholder="예) 서울시 종로구 종로1길 12" / aria-label="주소">
-    </div>
-  </div>
-  <div class="card">
-    <div class="card-title">신청 항목</div>
-    <div class="check-list">
-      <label class="check-item">
-        <input type="checkbox" id="a_braille"  aria-label="점자메뉴판 신청"/>
-        <div class="item-info">
-          <div class="item-name">📖 점자메뉴판</div>
-          <div class="item-desc">시각장애인을 위한 음식·메뉴 안내용 점자 메뉴판</div>
-        </div>
-      </label>
-      <label class="check-item">
-        <input type="checkbox" id="a_ramp"  aria-label="경사로 신청"/>
-        <div class="item-info">
-          <div class="item-name">♿ 경사로</div>
-          <div class="item-desc">휠체어·유모차 이용자를 위한 출입구 경사로</div>
-        </div>
-      </label>
-      <label class="check-item">
-        <input type="checkbox" id="a_sign"  aria-label="쉬운 안내판 신청"/>
-        <div class="item-info">
-          <div class="item-name">🔤 쉬운 안내판</div>
-          <div class="item-desc">픽토그램·쉬운 그림으로 된 메뉴판 또는 안내판</div>
-        </div>
-      </label>
-      <label class="check-item">
-        <input type="checkbox" id="a_other" onchange="toggleOtherInput(this)"  aria-label="기타 신청"/>
-        <div class="item-info">
-          <div class="item-name">💬 기타</div>
-          <div class="item-desc">위 항목 외 접근성 관련 지원이 필요한 경우</div>
-        </div>
-      </label>
-    </div>
-    <div id="other-input-wrap" style="display:none;margin-top:10px">
-      <div class="card-title" style="margin-bottom:8px">기타 내용</div>
-      <textarea id="a_other_detail" placeholder="기타를 선택했다면 필요한 내용을 적어주세요." style="min-height:72px" aria-label="기타 내용"></textarea>
-    </div>
-  </div>
-  <div class="card">
-    <div class="card-title">신청자 정보</div>
-    <div class="field">
-      <label class="field-label">이름 또는 닉네임<span class="req">*</span></label>
-      <input type="text" id="a_applyname" placeholder="예) 홍길동 또는 종로주민" / aria-label="이름 또는 닉네임">
-    </div>
-    <div class="field">
-      <label class="field-label">연락처<span class="req">*</span></label>
-      <input type="tel" id="a_phone" placeholder="예) 010-1234-5678" / aria-label="연락처">
-    </div>
-    <div class="field">
-      <label class="field-label">요청 메모<span class="opt">(선택)</span></label>
-      <textarea id="a_memo" placeholder="추가로 전달하고 싶은 내용을 적어주세요." aria-label="요청 메모"></textarea>
-    </div>
-  </div>
-  <div class="card" style="background:var(--teal-light);border-color:var(--teal-mid)">
-    <div style="font-size:13px;color:#1a5c4a;line-height:1.7;margin-bottom:12px">
-      입력하신 개인정보는 종로장애인복지관의 접근성 개선 신청 접수 및 진행 안내를 위해서만 사용되며, 담당자 외에는 공개되지 않습니다.
-    </div>
-    <div style="font-size:12px;color:#1a5c4a;background:rgba(255,255,255,0.5);border-radius:8px;padding:10px 12px;margin-bottom:12px;line-height:1.8">
-      · 수집항목: 이름, 연락처<br>
-      · 이용목적: 접근성 개선 신청 접수 및 진행 안내<br>
-      · 보유기간: 신청 처리 완료 후 1년 보관 후 파기
-    </div>
-    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:14px;font-weight:500;color:#1a5c4a">
-      <input type="checkbox" id="a_privacy" style="width:18px;height:18px;accent-color:var(--teal);flex-shrink:0" / aria-label="개인정보 동의">
-      개인정보 수집 및 이용에 동의합니다.
-    </label>
-  </div>
-  <button class="submit-btn" id="apply-btn" onclick="submitApply()">신청 제출하기</button>
-  <div id="apply-toast" class="toast"></div>
 </div>
+<!-- 신청·추천 -->
+<div id="apply" class="section" role="tabpanel" aria-label="신청 및 추천">
 
+  <!-- 탭 전환 버튼 -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;background:var(--white);border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:16px;overflow:hidden">
+    <button id="apply-tab-btn" onclick="switchApplyTab('apply')" role="tab" aria-selected="true" aria-controls="apply-form" style="padding:12px;font-size:14px;font-weight:700;color:var(--teal);background:var(--teal-light);border:none;cursor:pointer;font-family:'Noto Sans KR',sans-serif;border-bottom:2px solid var(--teal)">📬 보급 신청</button>
+    <button id="recommend-tab-btn" onclick="switchApplyTab('recommend')" role="tab" aria-selected="false" aria-controls="recommend-form" style="padding:12px;font-size:14px;font-weight:500;color:var(--text-muted);background:none;border:none;cursor:pointer;font-family:'Noto Sans KR',sans-serif;border-bottom:2px solid transparent">🌟 상점 추천</button>
+  </div>
+
+  <!-- 보급 신청 폼 -->
+  <div id="apply-form" role="tabpanel">
+    <div class="notice">
+      <strong>여기도 있으면 좋겠어요!</strong><br>
+      지역주민 누구나 점자메뉴판, 경사로, 쉬운 안내판 등 접근성 개선이 필요한 장소를 알려줄 수 있어요.<br>
+      <span style="display:inline-block;margin-top:6px;font-size:12px;background:rgba(26,140,110,0.12);padding:4px 10px;border-radius:12px;color:#1a5c4a">경사로는 현장 확인 후 지원 가능 여부를 안내드립니다.</span>
+    </div>
+    <div class="card">
+      <div class="card-title">상점 정보</div>
+      <div class="field">
+        <label class="field-label" for="a_name">상호명<span class="req">*</span></label>
+        <input type="text" id="a_name" placeholder="예) 종로분식" aria-label="상호명">
+      </div>
+      <div class="field">
+        <label class="field-label" for="a_addr">주소<span class="req">*</span></label>
+        <input type="text" id="a_addr" placeholder="예) 서울시 종로구 종로1길 12" aria-label="주소">
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">신청 항목</div>
+      <div class="check-list">
+        <label class="check-item">
+          <input type="checkbox" id="a_braille" aria-label="점자메뉴판 신청"/>
+          <div class="item-info">
+            <div class="item-name">📖 점자메뉴판</div>
+            <div class="item-desc">시각장애인을 위한 음식·메뉴 안내용 점자 메뉴판</div>
+          </div>
+        </label>
+        <label class="check-item">
+          <input type="checkbox" id="a_ramp" aria-label="경사로 신청"/>
+          <div class="item-info">
+            <div class="item-name">♿ 경사로</div>
+            <div class="item-desc">휠체어·유모차 이용자를 위한 출입구 경사로</div>
+          </div>
+        </label>
+        <label class="check-item">
+          <input type="checkbox" id="a_sign" aria-label="쉬운 안내판 신청"/>
+          <div class="item-info">
+            <div class="item-name">🔤 쉬운 안내판</div>
+            <div class="item-desc">픽토그램·쉬운 그림으로 된 메뉴판 또는 안내판</div>
+          </div>
+        </label>
+        <label class="check-item">
+          <input type="checkbox" id="a_other" onchange="toggleOtherInput(this)" aria-label="기타 신청"/>
+          <div class="item-info">
+            <div class="item-name">💬 기타</div>
+            <div class="item-desc">위 항목 외 접근성 관련 지원이 필요한 경우</div>
+          </div>
+        </label>
+      </div>
+      <div id="other-input-wrap" style="display:none;margin-top:10px">
+        <div class="card-title" style="margin-bottom:8px">기타 내용</div>
+        <textarea id="a_other_detail" placeholder="기타를 선택했다면 필요한 내용을 적어주세요." style="min-height:72px" aria-label="기타 내용"></textarea>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">신청자 정보</div>
+      <div class="field">
+        <label class="field-label" for="a_applyname">이름 또는 닉네임<span class="req">*</span></label>
+        <input type="text" id="a_applyname" placeholder="예) 홍길동 또는 종로주민" aria-label="이름 또는 닉네임">
+      </div>
+      <div class="field">
+        <label class="field-label" for="a_phone">연락처<span class="req">*</span></label>
+        <input type="tel" id="a_phone" placeholder="예) 010-1234-5678" aria-label="연락처">
+      </div>
+      <div class="field">
+        <label class="field-label" for="a_memo">요청 메모<span class="opt">(선택)</span></label>
+        <textarea id="a_memo" placeholder="추가로 전달하고 싶은 내용을 적어주세요." aria-label="요청 메모"></textarea>
+      </div>
+    </div>
+    <div class="card" style="background:var(--teal-light);border-color:var(--teal-mid)">
+      <div style="font-size:13px;color:#1a5c4a;line-height:1.7;margin-bottom:12px">
+        입력하신 개인정보는 종로장애인복지관의 접근성 개선 신청 접수 및 진행 안내를 위해서만 사용되며, 담당자 외에는 공개되지 않습니다.
+      </div>
+      <div style="font-size:12px;color:#1a5c4a;background:rgba(255,255,255,0.5);border-radius:8px;padding:10px 12px;margin-bottom:12px;line-height:1.8">
+        · 수집항목: 이름, 연락처<br>
+        · 이용목적: 접근성 개선 신청 접수 및 진행 안내<br>
+        · 보유기간: 신청 처리 완료 후 1년 보관 후 파기
+      </div>
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:14px;font-weight:500;color:#1a5c4a">
+        <input type="checkbox" id="a_privacy" style="width:18px;height:18px;accent-color:var(--teal);flex-shrink:0" aria-label="개인정보 동의">
+        개인정보 수집 및 이용에 동의합니다.
+      </label>
+    </div>
+    <button class="submit-btn" id="apply-btn" onclick="submitApply()">신청 제출하기</button>
+    <div id="apply-toast" class="toast" role="alert" aria-live="polite"></div>
+  </div>
+
+  <!-- 상점 추천 폼 -->
+  <div id="recommend-form" role="tabpanel" style="display:none">
+    <div class="notice">
+      <strong>우리 동네 편한 가게를 소개해요!</strong><br>
+      배리어프리 가게를 발견했다면 알려주세요. 지도에 함께 기록할게요.
+    </div>
+    <div class="card">
+      <div class="card-title">상점 정보</div>
+      <div class="field">
+        <label class="field-label" for="r_name">상호명<span class="req">*</span></label>
+        <input type="text" id="r_name" placeholder="예) 종로분식" aria-label="추천 상호명">
+      </div>
+      <div class="field">
+        <label class="field-label" for="r_addr">주소<span class="req">*</span></label>
+        <input type="text" id="r_addr" placeholder="예) 서울시 종로구 종로1길 12" aria-label="추천 상점 주소">
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">어떤 점이 좋았나요?</div>
+      <div class="check-list">
+        <label class="check-item">
+          <input type="checkbox" id="r_braille" aria-label="점자메뉴판 있어요"/>
+          <div class="item-info">
+            <div class="item-name">📖 점자메뉴판 있어요</div>
+            <div class="item-desc">시각장애인도 메뉴를 확인할 수 있어요</div>
+          </div>
+        </label>
+        <label class="check-item">
+          <input type="checkbox" id="r_ramp" aria-label="경사로·턱 없어요"/>
+          <div class="item-info">
+            <div class="item-name">♿ 경사로·턱 없어요</div>
+            <div class="item-desc">휠체어·유모차도 편하게 들어올 수 있어요</div>
+          </div>
+        </label>
+        <label class="check-item">
+          <input type="checkbox" id="r_toilet" aria-label="화장실 이용 편해요"/>
+          <div class="item-info">
+            <div class="item-name">🚻 화장실 이용 편해요</div>
+            <div class="item-desc">누구나 편하게 이용할 수 있는 화장실이에요</div>
+          </div>
+        </label>
+        <label class="check-item">
+          <input type="checkbox" id="r_staff" aria-label="직원이 친절해요"/>
+          <div class="item-info">
+            <div class="item-name">😊 직원이 친절해요</div>
+            <div class="item-desc">장애인·노인 등에게 배려 있게 응대해요</div>
+          </div>
+        </label>
+        <label class="check-item">
+          <input type="checkbox" id="r_sign" aria-label="쉬운 안내판 있어요"/>
+          <div class="item-info">
+            <div class="item-name">🔤 쉬운 안내판 있어요</div>
+            <div class="item-desc">그림·픽토그램으로 누구나 알기 쉬워요</div>
+          </div>
+        </label>
+        <label class="check-item">
+          <input type="checkbox" id="r_other" onchange="toggleRecommendOther(this)" aria-label="기타"/>
+          <div class="item-info">
+            <div class="item-name">💬 기타</div>
+            <div class="item-desc">위 항목 외에 좋았던 점을 직접 적어주세요</div>
+          </div>
+        </label>
+      </div>
+      <div id="recommend-other-wrap" style="display:none;margin-top:10px">
+        <textarea id="r_other_detail" placeholder="어떤 점이 좋았는지 자유롭게 적어주세요." style="min-height:72px" aria-label="기타 좋았던 점"></textarea>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">추천인 정보</div>
+      <div class="field">
+        <label class="field-label" for="r_name2">이름 또는 닉네임<span class="req">*</span></label>
+        <input type="text" id="r_name2" placeholder="예) 홍길동 또는 종로주민" aria-label="추천인 이름">
+      </div>
+      <div class="field">
+        <label class="field-label" for="r_phone">연락처<span class="opt">(선택)</span></label>
+        <input type="tel" id="r_phone" placeholder="예) 010-1234-5678" aria-label="추천인 연락처">
+      </div>
+      <div class="field">
+        <label class="field-label" for="r_memo">한 줄 소개<span class="opt">(선택)</span></label>
+        <input type="text" id="r_memo" placeholder="예) 경사로도 있고 직원분이 너무 친절해요!" aria-label="한 줄 소개">
+      </div>
+    </div>
+    <button class="submit-btn" id="recommend-btn" onclick="submitRecommend()" style="background:#1a8c6e">추천 제출하기</button>
+    <div id="recommend-toast" class="toast" role="alert" aria-live="polite"></div>
+  </div>
+
+</div>
 <!-- 모니터링 기록 -->
-<div id="monitor" class="section" role="tabpanel" aria-label="모니터링 기록">
-  <div class="notice">모니터링단 전용 화면입니다.<br>현장에서 점검한 내용을 기록해 주세요.</div>
+<div id="monitor" class="section" role="tabpanel" aria-label="모니터링">
+
+  <!-- 탭 전환 버튼 -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;background:var(--white);border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:16px;overflow:hidden">
+    <button id="monitor-tab-btn" onclick="switchMonitorTab('checklist')" role="tab" aria-selected="true" aria-controls="monitor-checklist" style="padding:12px;font-size:14px;font-weight:700;color:#1565c0;background:#e3f2fd;border:none;cursor:pointer;font-family:'Noto Sans KR',sans-serif;border-bottom:2px solid #1565c0">🔍 체크리스트</button>
+    <button id="journal-tab-btn" onclick="switchMonitorTab('journal')" role="tab" aria-selected="false" aria-controls="monitor-journal" style="padding:12px;font-size:14px;font-weight:500;color:var(--text-muted);background:none;border:none;cursor:pointer;font-family:'Noto Sans KR',sans-serif;border-bottom:2px solid transparent">📝 활동 일지</button>
+  </div>
+
+  <!-- 체크리스트 -->
+  <div id="monitor-checklist" role="tabpanel">
+<div class="notice">모니터링단 전용 화면입니다.<br>현장에서 점검한 내용을 기록해 주세요.</div>
   <div class="card">
     <div class="card-title">장소 정보</div>
     <div class="field">
@@ -520,11 +639,11 @@
   <button class="submit-btn" id="monitor-btn" onclick="submitMonitor()">기록 제출하기</button>
   <div id="monitor-toast" class="toast"></div>
 </div>
+  </div>
 
-<!-- 활동 일지 -->
-<div id="journal" class="section" role="tabpanel" aria-label="활동 일지">
-
-  <!-- 작성 영역 -->
+  <!-- 활동 일지 -->
+  <div id="monitor-journal" role="tabpanel" style="display:none">
+<!-- 작성 영역 -->
   <div class="journal-full">
     <div class="notice">그날 방문한 상점과 체크리스트가 자동으로 불러와져요. 활동 소감을 추가로 작성하고 제출하세요.</div>
   </div>
@@ -580,8 +699,10 @@
       <div class="empty-state"><div class="empty-icon" aria-hidden="true">📝</div>아직 작성된 일지가 없어요</div>
     </div>
   </div>
+  </div>
 
 </div>
+
 
 <!-- 전체 기록 -->
 <div id="records" class="section" role="tabpanel" aria-label="전체 기록">
@@ -608,7 +729,6 @@
 
 <!-- 지도 -->
 <div id="map" class="section" role="tabpanel" aria-label="현황 지도">
-  <div class="notice">신청이 접수된 상점 위치를 지도에서 확인할 수 있어요.<br>주소가 입력된 신청 기록만 표시됩니다.</div>
   <div style="position:sticky;top:101px;z-index:50;background:var(--bg);padding-bottom:8px">
     <div style="position:relative">
       <div id="kakao-map" role="application" aria-label="배리어프리 상점 지도" style="width:100%;height:280px;border-radius:12px;border:1px solid var(--border);"></div>
@@ -616,9 +736,26 @@
         📍 내 위치
       </button>
     </div>
+    <!-- 필터 -->
+    <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+      <select id="map-filter-type" onchange="renderMapList()" aria-label="유형 필터" style="flex:1;min-width:120px;padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:'Noto Sans KR',sans-serif;background:var(--white)">
+        <option value="">전체 유형</option>
+        <option value="apply">보급 신청</option>
+        <option value="monitor">모니터링</option>
+        <option value="recommend">상점 추천</option>
+      </select>
+      <select id="map-filter-action" onchange="renderMapList()" aria-label="상태 필터" style="flex:1;min-width:120px;padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:'Noto Sans KR',sans-serif;background:var(--white)">
+        <option value="">전체 상태</option>
+        <option value="조치 필요">조치 필요</option>
+        <option value="양호">양호</option>
+        <option value="추후 확인">추후 확인</option>
+        <option value="신청 접수">신청 접수</option>
+        <option value="추천">추천</option>
+      </select>
+    </div>
   </div>
   <div class="card">
-    <div class="card-title" id="map-list-title">신청 목록</div>
+    <div class="card-title" id="map-list-title">목록</div>
     <div id="map-list" role="list" aria-labelledby="map-list-title" aria-live="polite"></div>
   </div>
 </div>
@@ -631,6 +768,26 @@
     <button class="sec-btn primary" id="manager-auth-btn" onclick="toggleManagerAuth()" aria-describedby="manager-auth-status">담당자 로그인</button>
   </div>
   <div id="manager-only-section" style="display:none">
+    <div class="card">
+      <div class="card-title">전체 기록</div>
+      <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+        <select id="settings-filter-type" onchange="renderSettingsRecords()" aria-label="유형 필터" style="flex:1;min-width:100px;padding:7px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:'Noto Sans KR',sans-serif">
+          <option value="">전체 유형</option>
+          <option value="apply">보급 신청</option>
+          <option value="monitor">모니터링</option>
+          <option value="recommend">상점 추천</option>
+        </select>
+        <select id="settings-filter-action" onchange="renderSettingsRecords()" aria-label="상태 필터" style="flex:1;min-width:100px;padding:7px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:'Noto Sans KR',sans-serif">
+          <option value="">전체 상태</option>
+          <option value="조치 필요">조치 필요</option>
+          <option value="양호">양호</option>
+          <option value="추후 확인">추후 확인</option>
+          <option value="신청 접수">신청 접수</option>
+          <option value="추천">추천</option>
+        </select>
+      </div>
+      <div id="settings-records-list" role="list" aria-label="기록 목록" aria-live="polite"></div>
+    </div>
     <div class="card">
       <div class="card-title">모니터링 팀 현황</div>
       <p style="font-size:13px;color:var(--text-muted);margin-bottom:12px">팀 구성은 연도 초에 코드 상단 <code style="background:var(--bg);padding:2px 6px;border-radius:4px;font-size:12px">TEAMS</code> 항목을 수정해 GitHub에 올리면 모든 기기에 반영됩니다.</p>
@@ -692,7 +849,7 @@ function switchTab(id, el) {
   if (id === 'home') { updateDashboard(); }
   if (id === 'settings') loadSettingsUI();
   if (id === 'map') initMap();
-  if (id === 'journal') initJournal();
+  if (id === 'monitor' && monitorUnlocked) switchMonitorTab('checklist');
 }
 
 // ── PIN 잠금 ──────────────────────────────────────
@@ -727,8 +884,14 @@ function requirePin(el) {
 }
 
 function requirePinForJournal(el) {
-  if (monitorUnlocked) { switchTab('journal', el); return; }
-  pendingTabEl = el;
+  // 이제 모니터링 탭 안 일지 서브탭으로 이동
+  const monitorEl = document.querySelector('[aria-controls="monitor"]');
+  if (monitorUnlocked) {
+    switchTab('monitor', monitorEl);
+    switchMonitorTab('journal');
+    return;
+  }
+  pendingTabEl = monitorEl;
   pendingPinType = 'journal';
   pinValue = '';
   updateDots();
@@ -801,7 +964,8 @@ function checkPin() {
       document.getElementById('lock-screen').classList.remove('show');
       document.removeEventListener('keydown', handlePinKeyboard);
       if (pendingPinType === 'journal') {
-        switchTab('journal', pendingTabEl);
+        switchTab('monitor', pendingTabEl);
+        switchMonitorTab('journal');
       } else {
         switchTab('monitor', pendingTabEl);
       }
@@ -972,6 +1136,115 @@ async function submitMonitor() {
   document.querySelector('.photo-drop p').textContent = '탭해서 사진 추가하기';
   document.getElementById('m_photos').value = '';
   setLoading('monitor-btn', false, '기록 제출하기');
+}
+
+// ── 신청·추천 탭 전환 ─────────────────────────────────
+function switchApplyTab(tab) {
+  const applyForm = document.getElementById('apply-form');
+  const recommendForm = document.getElementById('recommend-form');
+  const applyBtn = document.getElementById('apply-tab-btn');
+  const recBtn = document.getElementById('recommend-tab-btn');
+  const applyTabEl = document.querySelector('[aria-controls="apply"]');
+  if (applyTabEl) switchTab('apply', applyTabEl);
+  if (tab === 'apply') {
+    applyForm.style.display = '';
+    recommendForm.style.display = 'none';
+    applyBtn.style.cssText += ';color:var(--teal);background:var(--teal-light);border-bottom:2px solid var(--teal);font-weight:700';
+    recBtn.style.cssText += ';color:var(--text-muted);background:none;border-bottom:2px solid transparent;font-weight:500';
+    applyBtn.setAttribute('aria-selected','true');
+    recBtn.setAttribute('aria-selected','false');
+  } else {
+    applyForm.style.display = 'none';
+    recommendForm.style.display = '';
+    recBtn.style.cssText += ';color:var(--teal);background:var(--teal-light);border-bottom:2px solid var(--teal);font-weight:700';
+    applyBtn.style.cssText += ';color:var(--text-muted);background:none;border-bottom:2px solid transparent;font-weight:500';
+    recBtn.setAttribute('aria-selected','true');
+    applyBtn.setAttribute('aria-selected','false');
+  }
+}
+
+// ── 모니터링 서브탭 전환 ─────────────────────────────
+function switchMonitorTab(tab) {
+  const checklistEl = document.getElementById('monitor-checklist');
+  const journalEl = document.getElementById('monitor-journal');
+  const checkBtn = document.getElementById('monitor-tab-btn');
+  const journalBtn = document.getElementById('journal-tab-btn');
+  if (tab === 'checklist') {
+    checklistEl.style.display = '';
+    journalEl.style.display = 'none';
+    checkBtn.style.cssText += ';color:#1565c0;background:#e3f2fd;border-bottom:2px solid #1565c0;font-weight:700';
+    journalBtn.style.cssText += ';color:var(--text-muted);background:none;border-bottom:2px solid transparent;font-weight:500';
+    checkBtn.setAttribute('aria-selected','true');
+    journalBtn.setAttribute('aria-selected','false');
+    // 일지 초기화도 같이
+  } else {
+    checklistEl.style.display = 'none';
+    journalEl.style.display = '';
+    journalBtn.style.cssText += ';color:#6a1b9a;background:#f3e8ff;border-bottom:2px solid #6a1b9a;font-weight:700';
+    checkBtn.style.cssText += ';color:var(--text-muted);background:none;border-bottom:2px solid transparent;font-weight:500';
+    journalBtn.setAttribute('aria-selected','true');
+    checkBtn.setAttribute('aria-selected','false');
+    initJournal();
+  }
+}
+
+// ── 홈 버튼 → PIN 후 탭 이동 ──────────────────────────
+function requirePinHome(target) {
+  const el = document.querySelector('[aria-controls="monitor"]');
+  if (target === 'monitor') {
+    requirePin(el);
+  } else {
+    requirePinForJournal(el);
+  }
+}
+
+// ── 추천 기타 토글 ─────────────────────────────────────
+function toggleRecommendOther(cb) {
+  document.getElementById('recommend-other-wrap').style.display = cb.checked ? '' : 'none';
+}
+
+// ── 상점 추천 제출 ─────────────────────────────────────
+async function submitRecommend() {
+  const name = document.getElementById('r_name').value.trim();
+  const addr = document.getElementById('r_addr').value.trim();
+  const name2 = document.getElementById('r_name2').value.trim();
+  const phone = document.getElementById('r_phone').value.trim();
+  const memo = document.getElementById('r_memo').value.trim();
+  const otherChecked = document.getElementById('r_other').checked;
+  const otherDetail = document.getElementById('r_other_detail').value.trim();
+
+  if (!name) { showToast('recommend-toast', '상호명을 입력해 주세요.', 'error'); return; }
+  if (!addr) { showToast('recommend-toast', '주소를 입력해 주세요.', 'error'); return; }
+  if (!name2) { showToast('recommend-toast', '이름 또는 닉네임을 입력해 주세요.', 'error'); return; }
+
+  const goods = [];
+  if (document.getElementById('r_braille').checked) goods.push('점자메뉴판');
+  if (document.getElementById('r_ramp').checked) goods.push('경사로·턱없음');
+  if (document.getElementById('r_toilet').checked) goods.push('화장실 편함');
+  if (document.getElementById('r_staff').checked) goods.push('직원 친절');
+  if (document.getElementById('r_sign').checked) goods.push('쉬운 안내판');
+  if (otherChecked && otherDetail) goods.push('기타: ' + otherDetail);
+
+  const ts = new Date().toLocaleString('ko-KR');
+  const items = goods.join(', ') || '항목 미선택';
+
+  setLoading('recommend-btn', true, '추천 제출하기');
+  try {
+    await fetch(SCRIPT_URL, {
+      method: 'POST', mode: 'no-cors',
+      body: JSON.stringify({ type: 'recommend', name, addr, items, recommender: name2, phone: phone || '', memo: memo || '', timestamp: ts }),
+      headers: { 'Content-Type': 'application/json' }
+    });
+  } catch(e) {}
+
+  saveRecord({ type: 'recommend', name, addr, items, recommender: name2, phone, memo, action: '추천', timestamp: ts });
+  showToast('recommend-toast', '✅ 추천이 접수되었습니다! 감사해요 😊', 'success');
+
+  // 폼 초기화
+  ['r_name','r_addr','r_name2','r_phone','r_memo','r_other_detail'].forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
+  ['r_braille','r_ramp','r_toilet','r_staff','r_sign','r_other'].forEach(id => { const el = document.getElementById(id); if(el) el.checked = false; });
+  document.getElementById('recommend-other-wrap').style.display = 'none';
+  setLoading('recommend-btn', false, '추천 제출하기');
 }
 
 // ── 팀 관리 ──────────────────────────────────────────
@@ -1554,9 +1827,46 @@ function updateManagerAuthUI() {
 }
 
 function loadSettingsUI() {
-  // URL 고정 — 변경 불필요
   updateManagerAuthUI();
   renderTeamList();
+  renderSettingsRecords();
+}
+
+function renderSettingsRecords() {
+  const typeFilter = (document.getElementById('settings-filter-type') || {}).value || '';
+  const actionFilter = (document.getElementById('settings-filter-action') || {}).value || '';
+  const records = getRecords().filter(r => {
+    if (typeFilter && r.type !== typeFilter) return false;
+    if (actionFilter && r.action !== actionFilter) return false;
+    return true;
+  });
+  const el = document.getElementById('settings-records-list');
+  if (!el) return;
+  if (records.length === 0) {
+    el.innerHTML = '<div class="empty-state"><div class="empty-icon" aria-hidden="true">📋</div>기록이 없어요. 시트에서 불러오기를 해주세요.</div>';
+    return;
+  }
+  el.innerHTML = records.map(r => {
+    const typeLabel = r.type === 'apply' ? '보급 신청' : r.type === 'monitor' ? '모니터링' : r.type === 'recommend' ? '상점 추천' : r.type;
+    const tagClass = r.type === 'apply' ? 'tag-apply' : r.type === 'monitor' ? 'tag-monitor' : 'tag-good';
+    const actionOpts = ['조치 필요','양호','추후 확인','신청 접수','처리 완료','추천'].map(s =>
+      `<option value="${s}" ${r.action===s?'selected':''}>${s}</option>`).join('');
+    return `<div class="record-item" role="listitem" style="margin-bottom:8px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <div style="display:flex;gap:6px;align-items:center">
+          <span class="tag ${tagClass}">${typeLabel}</span>
+          <span style="font-size:13px;font-weight:700">${r.name || r.place || ''}</span>
+        </div>
+        <span class="rec-date">${r.timestamp ? String(r.timestamp).slice(0,10) : ''}</span>
+      </div>
+      <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px">${r.addr || ''}</div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <select onchange="updateRecordStatus(this,'${r.timestamp}','${r.type}')" aria-label="${r.name || ''} 상태 변경" style="flex:1;padding:6px 8px;border:1px solid var(--border);border-radius:6px;font-size:12px;font-family:'Noto Sans KR',sans-serif">
+          ${actionOpts}
+        </select>
+      </div>
+    </div>`;
+  }).join('');
 }
 function saveSheetUrl() {}
 
@@ -1591,6 +1901,15 @@ async function loadFromSheet() {
     const all = [...applyData.records, ...monitorData.records];
     all.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
     localStorage.setItem('records', JSON.stringify(all));
+
+    // 추천 데이터 불러오기
+    try {
+      const recommendRes = await fetch(SCRIPT_URL + '?type=recommend');
+      const recommendData = await recommendRes.json();
+      if (recommendData.result === 'ok' && recommendData.records) {
+        all.push(...recommendData.records);
+      }
+    } catch(e) {}
 
     // 일지 데이터 불러오기 (실패해도 전체 불러오기는 성공)
     let journalCount = 0;
@@ -1679,9 +1998,19 @@ function getMarkerColor(rec) {
   return '#6b7280';                                   // ⚫ 회색 - 기타
 }
 
+function renderMapList() { renderMap(); }
+
 function renderMap() {
-  const allRecords = getRecords();
+  const typeFilter = (document.getElementById('map-filter-type') || {}).value || '';
+  const actionFilter = (document.getElementById('map-filter-action') || {}).value || '';
+  const allRecords = getRecords().filter(r => {
+    if (typeFilter && r.type !== typeFilter) return false;
+    if (actionFilter && r.action !== actionFilter) return false;
+    return true;
+  });
   const mapRecords = allRecords.filter(r => r.addr);
+  const title = document.getElementById('map-list-title');
+  if (title) title.textContent = `목록 (${mapRecords.length}건)`;
   const container = document.getElementById('kakao-map');
   const listEl = document.getElementById('map-list');
 
