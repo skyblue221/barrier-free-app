@@ -59,6 +59,7 @@
     #monitor .journal-full { grid-column: 1 / -1; }
     /* 모니터링·신청·지도·설정 - 넓게 중앙 정렬 */
     #monitor.section.active, #apply.section.active, #map.section.active, #settings.section.active { max-width: 760px; padding: 28px 40px 60px; }
+    #monitor.section.active #monitor-checklist, #monitor.section.active #monitor-journal { max-width: 100%; }
     /* 지도 높이 확대 */
     #map.section.active #kakao-map { height: 460px; }
     /* 모달 바텀시트 → 센터 모달로 */
@@ -516,7 +517,7 @@
 
 </div>
 <!-- 모니터링 기록 -->
-<div id="monitor" class="section" style="padding-top:12px" role="tabpanel" aria-label="모니터링">
+<div id="monitor" class="section" role="tabpanel" aria-label="모니터링">
 
   <!-- 탭 전환 버튼 -->
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;background:var(--white);border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:16px;overflow:hidden">
@@ -647,8 +648,8 @@
   </div>
 
   <!-- 활동 일지 -->
-  <div id="monitor-journal" role="tabpanel" style="display:none;margin-top:0">
-  <div class="notice" style="margin-bottom:12px">그날 방문한 상점과 체크리스트가 자동으로 불러와져요. 활동 소감을 추가로 작성하고 제출하세요.</div>
+  <div id="monitor-journal" role="tabpanel" style="display:none">
+  <div class="notice">그날 방문한 상점과 체크리스트가 자동으로 불러와져요. 활동 소감을 추가로 작성하고 제출하세요.</div>
 
   <div class="card">
     <div class="card-title">활동 기본 정보</div>
@@ -814,19 +815,22 @@ function saveRecord(rec) {
 
 // ── 탭 전환 ──────────────────────────────────────
 function switchTab(id, el) {
-  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-  document.querySelectorAll('.tab').forEach(t => {
-    t.classList.remove('active');
-    t.setAttribute('aria-selected', 'false');
-  });
-  document.getElementById(id).classList.add('active');
-  el.classList.add('active');
-  el.setAttribute('aria-selected', 'true');
-  if (id === 'records') renderRecords();
-  if (id === 'home') { updateDashboard(); }
-  if (id === 'settings') loadSettingsUI();
-  if (id === 'map') initMap();
-  if (id === 'monitor' && monitorUnlocked) setTimeout(() => switchMonitorTab('checklist'), 0);
+  try {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t => {
+      t.classList.remove('active');
+      t.setAttribute('aria-selected', 'false');
+    });
+    const target = document.getElementById(id);
+    if (!target) return;
+    target.classList.add('active');
+    el.classList.add('active');
+    el.setAttribute('aria-selected', 'true');
+    if (id === 'home') { try { updateDashboard(); } catch(e) {} }
+    if (id === 'settings') { try { loadSettingsUI(); } catch(e) {} }
+    if (id === 'map') { try { initMap(); } catch(e) {} }
+    if (id === 'monitor' && monitorUnlocked) setTimeout(() => { try { switchMonitorTab('checklist'); } catch(e) {} }, 0);
+  } catch(e) { console.warn('switchTab error:', e); }
 }
 
 // ── PIN 잠금 ──────────────────────────────────────
@@ -1142,27 +1146,29 @@ function switchApplyTab(tab) {
 
 // ── 모니터링 서브탭 전환 ─────────────────────────────
 function switchMonitorTab(tab) {
-  const checklistEl = document.getElementById('monitor-checklist');
-  const journalEl = document.getElementById('monitor-journal');
-  const checkBtn = document.getElementById('monitor-tab-btn');
-  const journalBtn = document.getElementById('journal-tab-btn');
-  if (!checklistEl || !journalEl || !checkBtn || !journalBtn) return;
-  if (tab === 'checklist') {
-    checklistEl.style.display = '';
-    journalEl.style.display = 'none';
-    checkBtn.className = 'monitor-subtab active-check';
-    journalBtn.className = 'monitor-subtab';
-    checkBtn.setAttribute('aria-selected', 'true');
-    journalBtn.setAttribute('aria-selected', 'false');
-  } else {
-    checklistEl.style.display = 'none';
-    journalEl.style.display = '';
-    journalBtn.className = 'monitor-subtab active-journal';
-    checkBtn.className = 'monitor-subtab';
-    journalBtn.setAttribute('aria-selected', 'true');
-    checkBtn.setAttribute('aria-selected', 'false');
-    setTimeout(initJournal, 50); // DOM 업데이트 후 호출
-  }
+  try {
+    const checklistEl = document.getElementById('monitor-checklist');
+    const journalEl = document.getElementById('monitor-journal');
+    const checkBtn = document.getElementById('monitor-tab-btn');
+    const journalBtn = document.getElementById('journal-tab-btn');
+    if (!checklistEl || !journalEl || !checkBtn || !journalBtn) return;
+    if (tab === 'checklist') {
+      checklistEl.style.display = '';
+      journalEl.style.display = 'none';
+      checkBtn.className = 'monitor-subtab active-check';
+      journalBtn.className = 'monitor-subtab';
+      checkBtn.setAttribute('aria-selected', 'true');
+      journalBtn.setAttribute('aria-selected', 'false');
+    } else {
+      checklistEl.style.display = 'none';
+      journalEl.style.display = '';
+      journalBtn.className = 'monitor-subtab active-journal';
+      checkBtn.className = 'monitor-subtab';
+      journalBtn.setAttribute('aria-selected', 'true');
+      checkBtn.setAttribute('aria-selected', 'false');
+      setTimeout(function() { try { initJournal(); } catch(e) { console.warn('initJournal error:', e); } }, 50);
+    }
+  } catch(e) { console.warn('switchMonitorTab error:', e); }
 }
 
 // ── 홈 버튼 → PIN 후 탭 이동 ──────────────────────────
@@ -1260,17 +1266,19 @@ function saveJournalRecord(j) {
 }
 
 function initJournal() {
-  const dateEl = document.getElementById('j_date');
-  const timeEl = document.getElementById('j_time');
-  if (!dateEl || !timeEl) return; // 아직 렌더 안 됐으면 중단
-  updateJournalTeamSelect();
-  if (!dateEl.value) dateEl.valueAsDate = new Date();
-  if (!timeEl.value) {
-    const now = new Date();
-    timeEl.value = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
-  }
-  loadJournalStores();
-  renderJournalList();
+  try {
+    const dateEl = document.getElementById('j_date');
+    const timeEl = document.getElementById('j_time');
+    if (!dateEl || !timeEl) return;
+    try { updateJournalTeamSelect(); } catch(e) { console.warn('updateJournalTeamSelect:', e); }
+    if (!dateEl.value) dateEl.valueAsDate = new Date();
+    if (!timeEl.value) {
+      const now = new Date();
+      timeEl.value = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+    }
+    try { loadJournalStores(); } catch(e) { console.warn('loadJournalStores:', e); }
+    try { renderJournalList(); } catch(e) { console.warn('renderJournalList:', e); }
+  } catch(e) { console.warn('initJournal:', e); }
 }
 
 function loadJournalStores() {
