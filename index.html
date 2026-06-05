@@ -281,10 +281,10 @@
     <div class="card-title">참여하기</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
       <button onclick="switchApplyTab('recommend')" style="padding:14px 10px;background:var(--teal-light);border:1.5px solid var(--teal-mid);border-radius:var(--radius-sm);cursor:pointer;font-family:'Noto Sans KR',sans-serif;font-size:13px;font-weight:700;color:var(--teal);line-height:1.6" aria-label="상점 추천하기">
-        🌟 상점 추천하기<br><span style="font-size:11px;font-weight:400;color:#1a5c4a">편한 가게를 소개해요</span>
+        <span aria-hidden="true">🌟</span> 상점 추천하기<br><span style="font-size:11px;font-weight:400;color:#1a5c4a">편한 가게를 소개해요</span>
       </button>
       <button onclick="switchApplyTab('apply')" style="padding:14px 10px;background:#fff8e1;border:1.5px solid #fdd835;border-radius:var(--radius-sm);cursor:pointer;font-family:'Noto Sans KR',sans-serif;font-size:13px;font-weight:700;color:#b8860b;line-height:1.6" aria-label="보급 신청하기">
-        📬 보급 신청하기<br><span style="font-size:11px;font-weight:400">설치가 필요한 곳을 알려요</span>
+        <span aria-hidden="true">📬</span> 보급 신청하기<br><span style="font-size:11px;font-weight:400">설치가 필요한 곳을 알려요</span>
       </button>
     </div>
   </div>
@@ -293,10 +293,10 @@
     <div class="card-title">모니터링단</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
       <button onclick="requirePinDirect('checklist')" style="padding:14px 10px;background:#e3f2fd;border:1.5px solid #90caf9;border-radius:var(--radius-sm);cursor:pointer;font-family:'Noto Sans KR',sans-serif;font-size:13px;font-weight:700;color:#1565c0;line-height:1.6" aria-label="체크리스트 작성하기">
-        🔍 체크리스트<br><span style="font-size:11px;font-weight:400">모니터링 기록하기</span>
+        <span aria-hidden="true">🔍</span> 체크리스트<br><span style="font-size:11px;font-weight:400">모니터링 기록하기</span>
       </button>
       <button onclick="requirePinDirect('journal')" style="padding:14px 10px;background:#f3e8ff;border:1.5px solid #ce93d8;border-radius:var(--radius-sm);cursor:pointer;font-family:'Noto Sans KR',sans-serif;font-size:13px;font-weight:700;color:#6a1b9a;line-height:1.6" aria-label="활동 일지 쓰기">
-        📝 활동 일지<br><span style="font-size:11px;font-weight:400">오늘 활동 기록하기</span>
+        <span aria-hidden="true">📝</span> 활동 일지<br><span style="font-size:11px;font-weight:400">오늘 활동 기록하기</span>
       </button>
     </div>
   </div>
@@ -455,8 +455,8 @@
 <!-- 모니터링 기록 -->
 <div id="monitor" class="section" role="tabpanel" aria-label="모니터링">
   <div class="subtab-bar" role="tablist">
-    <button id="subtab-check" class="subtab on-check" role="tab" aria-selected="true" onclick="showSubtab('check')">🔍 체크리스트</button>
-    <button id="subtab-journal" class="subtab" role="tab" aria-selected="false" onclick="showSubtab('journal')">📝 활동 일지</button>
+    <button id="subtab-check" class="subtab on-check" role="tab" aria-selected="true" onclick="showSubtab('check')"><span aria-hidden="true">🔍</span> 체크리스트</button>
+    <button id="subtab-journal" class="subtab" role="tab" aria-selected="false" onclick="showSubtab('journal')"><span aria-hidden="true">📝</span> 활동 일지</button>
   </div>
   <div id="sub-check">
   <div class="notice">모니터링단 전용 화면입니다.<br>현장에서 점검한 내용을 기록해 주세요.</div>
@@ -614,7 +614,7 @@
     <div id="journal-toast" class="toast" role="alert" aria-live="polite"></div>
     <div class="card" style="margin-top:20px">
       <div class="card-title">제출된 일지 목록</div>
-      <div id="journal-list"><div class="empty-state"><div class="empty-icon">📝</div>아직 작성된 일지가 없어요</div></div>
+      <div id="journal-list" role="list" aria-live="polite" aria-label="제출된 일지 목록"><div class="empty-state"><div class="empty-icon" aria-hidden="true">📝</div>아직 작성된 일지가 없어요</div></div>
     </div>
   </div><!-- /sub-journal -->
 
@@ -1112,7 +1112,7 @@ function renderJournalList() {
   if (!el) return;
   var journals = getJournals();
   if (!journals.length) {
-    el.innerHTML = '<div class="empty-state"><div class="empty-icon">📝</div>아직 작성된 일지가 없어요</div>';
+    el.innerHTML = '<div class="empty-state"><div class="empty-icon" aria-hidden="true">📝</div>아직 작성된 일지가 없어요</div>';
     return;
   }
   el.innerHTML = journals.map(function(j) {
@@ -1350,7 +1350,7 @@ function recordCard(r, idx) {
 
 function statusDropdown(r) {
   const ts = (r.timestamp || '').replace(/'/g, "\\'");
-  return `<select class="status-select" onchange="changeStatus('${ts}', this.value)" onclick="event.stopPropagation()" style="font-family:'Noto Sans KR',sans-serif;font-size:12px;padding:4px 8px;border:1px solid var(--border);border-radius:6px;background:var(--white);color:var(--text);cursor:pointer;margin-top:8px">
+  return `<select class="status-select" aria-label="${name} 상태 변경" onchange="changeStatus('${ts}', this.value)" onclick="event.stopPropagation()" style="font-family:'Noto Sans KR',sans-serif;font-size:12px;padding:4px 8px;border:1px solid var(--border);border-radius:6px;background:var(--white);color:var(--text);cursor:pointer;margin-top:8px">
     <option value="">── 상태 변경 (담당자)</option>
     <option value="신청 접수">신청 접수</option>
     <option value="검토 중">검토 중</option>
@@ -1436,12 +1436,12 @@ function renderEditForm(r) {
       <div class="field"><label class="field-label">장소명</label><input type="text" id="ef_name" value="${r.name || ''}" /></div>
       <div class="field"><label class="field-label">주소</label><input type="text" id="ef_addr" value="${r.addr || ''}" /></div>
       <div class="field"><label class="field-label">점검 날짜</label><input type="date" id="ef_date" value="${r.date || ''}" /></div>
-      <div class="field"><label class="field-label">점자메뉴판</label><select id="ef_r1">${ratingOptions('r1',r.r1)}</select></div>
-      <div class="field"><label class="field-label">경사로</label><select id="ef_r2">${ratingOptions('r2',r.r2)}</select></div>
-      <div class="field"><label class="field-label">화장실</label><select id="ef_r3">${ratingOptions('r3',r.r3)}</select></div>
-      <div class="field"><label class="field-label">안내판</label><select id="ef_r4">${ratingOptions('r4',r.r4)}</select></div>
+      <div class="field"><label class="field-label">점자메뉴판</label><select id="ef_r1" aria-label="점자메뉴판 평가">${ratingOptions('r1',r.r1)}</select></div>
+      <div class="field"><label class="field-label">경사로</label><select id="ef_r2" aria-label="경사로 평가">${ratingOptions('r2',r.r2)}</select></div>
+      <div class="field"><label class="field-label">화장실</label><select id="ef_r3" aria-label="화장실 평가">${ratingOptions('r3',r.r3)}</select></div>
+      <div class="field"><label class="field-label">안내판</label><select id="ef_r4" aria-label="안내판 평가">${ratingOptions('r4',r.r4)}</select></div>
       <div class="field"><label class="field-label">조치 여부</label>
-        <select id="ef_action">
+        <select id="ef_action" aria-label="조치 필요 여부">
           <option value="조치 필요" ${r.action==='조치 필요'?'selected':''}>조치 필요</option>
           <option value="양호" ${r.action==='양호'?'selected':''}>양호</option>
           <option value="추후 확인" ${r.action==='추후 확인'?'selected':''}>추후 확인</option>
@@ -1675,7 +1675,7 @@ function renderMap() {
   const recordListEl = document.getElementById('map-record-list');
 
   if (mapRecords.length === 0) {
-    recordListEl.innerHTML = '<div class="empty-state"><div class="empty-icon">📍</div>아직 기록이 없어요</div>';
+    recordListEl.innerHTML = '<div class="empty-state"><div class="empty-icon" aria-hidden="true">📍</div>아직 기록이 없어요</div>';
     return;
   }
 
