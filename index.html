@@ -903,7 +903,8 @@ async function filesToBase64(files) {
     const img = new Image();
     const url = URL.createObjectURL(file);
     img.onload = function() {
-      const MAX = 800;
+      // 400px로 강하게 리사이즈 + 품질 50% → 장당 약 20-30KB
+      const MAX = 400;
       let w = img.width, h = img.height;
       if (w > MAX || h > MAX) {
         if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
@@ -913,7 +914,7 @@ async function filesToBase64(files) {
       canvas.width = w; canvas.height = h;
       canvas.getContext('2d').drawImage(img, 0, 0, w, h);
       URL.revokeObjectURL(url);
-      resolve({ data: canvas.toDataURL('image/jpeg', 0.7).split(',')[1], mimeType: 'image/jpeg' });
+      resolve({ data: canvas.toDataURL('image/jpeg', 0.5).split(',')[1], mimeType: 'image/jpeg' });
     };
     img.onerror = reject;
     img.src = url;
@@ -1001,29 +1002,11 @@ async function submitMonitor() {
   }
 
   try {
-    if (photos.length > 0) {
-      // 사진이 있으면 한 장씩 나눠서 전송 (payload 크기 제한 때문)
-      // 먼저 텍스트 데이터만 전송
-      await fetch(SCRIPT_URL, {
-        method: 'POST', mode: 'no-cors',
-        body: JSON.stringify({ type: 'monitor', place, addr, date, r1, r2, r3, r4, action, comment, author, extras, photos: [], timestamp: ts }),
-        headers: { 'Content-Type': 'application/json' }
-      });
-      // 사진을 한 장씩 추가 전송
-      for (var pi = 0; pi < photos.length; pi++) {
-        await fetch(SCRIPT_URL, {
-          method: 'POST', mode: 'no-cors',
-          body: JSON.stringify({ type: 'monitorPhoto', place, date, photo: photos[pi], photoIndex: pi, timestamp: ts }),
-          headers: { 'Content-Type': 'application/json' }
-        });
-      }
-    } else {
-      await fetch(SCRIPT_URL, {
-        method: 'POST', mode: 'no-cors',
-        body: JSON.stringify({ type: 'monitor', place, addr, date, r1, r2, r3, r4, action, comment, author, extras, photos: [], timestamp: ts }),
-        headers: { 'Content-Type': 'application/json' }
-      });
-    }
+    await fetch(SCRIPT_URL, {
+      method: 'POST', mode: 'no-cors',
+      body: JSON.stringify({ type: 'monitor', place, addr, date, r1, r2, r3, r4, action, comment, author, extras, photos, timestamp: ts }),
+      headers: { 'Content-Type': 'application/json' }
+    });
   } catch(e) { console.warn('전송 오류:', e); }
 
   saveRecord({ type:'monitor', name: place, addr, date, r1, r2, r3, r4, action, comment, author, extras, goodcase, timestamp: ts });
