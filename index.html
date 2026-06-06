@@ -311,7 +311,7 @@
   <div class="card">
     <div class="card-title">모니터링단</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-      <button onclick="requirePinDirect('checklist')" style="padding:14px 10px;background:#e3f2fd;border:1.5px solid #90caf9;border-radius:var(--radius-sm);cursor:pointer;font-family:'Noto Sans KR',sans-serif;font-size:13px;font-weight:700;color:#1565c0;line-height:1.6" aria-label="체크리스트 작성하기">
+      <button onclick="requirePinDirect('check')" style="padding:14px 10px;background:#e3f2fd;border:1.5px solid #90caf9;border-radius:var(--radius-sm);cursor:pointer;font-family:'Noto Sans KR',sans-serif;font-size:13px;font-weight:700;color:#1565c0;line-height:1.6" aria-label="체크리스트 작성하기">
         <span aria-hidden="true">🔍</span> 체크리스트<br><span style="font-size:11px;font-weight:400">모니터링 기록하기</span>
       </button>
       <button onclick="requirePinDirect('journal')" style="padding:14px 10px;background:#f3e8ff;border:1.5px solid #ce93d8;border-radius:var(--radius-sm);cursor:pointer;font-family:'Noto Sans KR',sans-serif;font-size:13px;font-weight:700;color:#6a1b9a;line-height:1.6" aria-label="활동 일지 쓰기">
@@ -817,6 +817,7 @@ function switchApplyTab(tab) {
 
 // ── 홈에서 모니터링단 버튼 ──────────────────────────
 function requirePinDirect(subtab) {
+  if (subtab === 'checklist') subtab = 'check';
   var monTab = document.querySelector('.tabs .tab:nth-child(3)');
   if (monitorUnlocked) {
     switchTab('monitor', monTab);
@@ -987,6 +988,18 @@ function setLoading(btnId, loading, label) {
 }
 
 // ── 신청 제출 ─────────────────────────────────────
+async function postSheetData(payload) {
+  const res = await fetch(SCRIPT_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify(payload)
+  });
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  const data = await res.json();
+  if (data.result && data.result !== 'ok') throw new Error(data.message || '시트 저장 실패');
+  return data;
+}
+
 async function submitApply() {
   const name = document.getElementById('a_name').value.trim();
   const addr = document.getElementById('a_addr').value.trim();
@@ -1046,14 +1059,16 @@ async function submitMonitor() {
   setLoading('monitor-btn', true, '기록 제출하기');
 
   // 로컬 먼저 저장 (사진 없이)
-  saveRecord({ type:'monitor', name: place, addr, date, r1, r2, r3, r4, action, comment, author, extras, goodcase, timestamp: ts });
+  try {
+    await postSheetData({ type: 'monitor', place, addr, date, r1, r2, r3, r4, action, comment, author, extras, photos: [], timestamp: ts });
+  } catch(e) {
+    console.warn('시트 저장 오류:', e);
+    showToast('monitor-toast', '시트 저장에 실패했어요. 사진을 빼거나 잠시 후 다시 시도해 주세요.', 'error');
+    setLoading('monitor-btn', false, '기록 제출하기');
+    return;
+  }
 
-  // 텍스트 데이터 시트 전송 (백그라운드)
-  fetch(SCRIPT_URL, {
-    method: 'POST', mode: 'no-cors',
-    body: JSON.stringify({ type: 'monitor', place, addr, date, r1, r2, r3, r4, action, comment, author, extras, photos: [], timestamp: ts }),
-    headers: { 'Content-Type': 'application/json' }
-  }).catch(function(e) { console.warn('전송 오류:', e); });
+  saveRecord({ type:'monitor', name: place, addr, date, r1, r2, r3, r4, action, comment, author, extras, goodcase, timestamp: ts });
 
   // 사진이 있으면 CORS 방식으로 한 장씩 업로드
   if (selectedPhotos.length > 0) {
