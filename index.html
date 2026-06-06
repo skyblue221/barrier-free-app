@@ -584,7 +584,7 @@
       <div class="card-title">활동 기본 정보</div>
       <div class="field">
         <label class="field-label" for="j_date">활동 날짜<span class="req">*</span></label>
-        <input type="date" id="j_date" aria-label="활동 날짜" />
+        <input type="date" id="j_date" aria-label="활동 날짜" onchange="loadJournalStores()" />
       </div>
       <div class="field">
         <label class="field-label" for="j_time">활동 시간<span class="req">*</span></label>
@@ -592,7 +592,7 @@
       </div>
       <div class="field">
         <label class="field-label" for="j_team">활동 팀<span class="req">*</span></label>
-        <select id="j_team" aria-label="활동 팀 선택">
+        <select id="j_team" aria-label="활동 팀 선택" onchange="loadJournalStores()">
           <option value="">-- 팀을 선택하세요 --</option>
         </select>
         <p id="j_team_members" style="font-size:12px;color:var(--text-muted);margin-top:5px"></p>
@@ -900,13 +900,23 @@ function previewPhotos(input) {
 
 async function filesToBase64(files) {
   return Promise.all(files.map(file => new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve({
-      data: reader.result.split(',')[1],
-      mimeType: file.type
-    });
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = function() {
+      const MAX = 800;
+      let w = img.width, h = img.height;
+      if (w > MAX || h > MAX) {
+        if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
+        else { w = Math.round(w * MAX / h); h = MAX; }
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      URL.revokeObjectURL(url);
+      resolve({ data: canvas.toDataURL('image/jpeg', 0.7).split(',')[1], mimeType: 'image/jpeg' });
+    };
+    img.onerror = reject;
+    img.src = url;
   })));
 }
 
@@ -1006,10 +1016,25 @@ async function submitMonitor() {
   saveRecord({ type:'monitor', name: place, addr, date, r1, r2, r3, r4, action, comment, author, extras, goodcase, timestamp: ts });
   showToast('monitor-toast', photos.length > 0 ? `✅ 기록과 사진 ${photos.length}장이 저장되었습니다!` : '✅ 기록이 저장되었습니다!', 'success');
 
-  // 폼 초기화
+  // 폼 완전 초기화
+  document.getElementById('m_place').value = '';
+  document.getElementById('m_addr').value = '';
+  document.getElementById('m_comment').value = '';
+  document.getElementById('m_author').value = '';
+  document.getElementById('m_extras').value = '';
+  // 평가 버튼 초기화
+  ['m_r1','m_r2','m_r3','m_r4'].forEach(function(id) { document.getElementById(id).value = ''; });
+  document.querySelectorAll('.rating-btn').forEach(function(b) { b.classList.remove('sel-good','sel-fair','sel-poor'); b.setAttribute('aria-pressed','false'); });
+  // 조치 필요 pill 초기화
+  document.getElementById('m_action').value = '';
+  ['pill_yes','pill_no','pill_follow'].forEach(function(id) { var el=document.getElementById(id); if(el){el.className='pill';el.setAttribute('aria-pressed','false');} });
+  // 체크박스 초기화
+  ['m_easysign','m_goodstaff','m_goodcase'].forEach(function(id) { var el=document.getElementById(id); if(el) el.checked=false; });
+  // 사진 초기화
   selectedPhotos = [];
   document.getElementById('photo-grid').innerHTML = '';
-  document.querySelector('.photo-drop p').textContent = '탭해서 사진 추가하기';
+  var dropP = document.querySelector('.photo-drop p');
+  if (dropP) dropP.textContent = '탭해서 사진 추가하기';
   document.getElementById('m_photos').value = '';
   setLoading('monitor-btn', false, '기록 제출하기');
 }
@@ -1301,13 +1326,7 @@ function renderGoodCases(records) {
 }
 
 // ── 홈 카드 클릭 → 기록 탭 이동 ─────────────────────
-function goToRecords(type, action) {
-  const tab = document.querySelector('.tab:nth-child(4)');
-  switchTab('records', tab);
-  document.getElementById('filter-type').value = type;
-  document.getElementById('filter-action').value = action;
-  renderRecords();
-}
+// goToRecords 제거됨 (기록 탭 설정으로 이동)
 
 // ── 전체 기록 ─────────────────────────────────────
 function renderRecords() {
@@ -1606,7 +1625,9 @@ function renderSettingsRecords() {
       + '<span style="font-size:11px;color:var(--text-muted)">' + ts.slice(0,10) + '</span>'
       + '</div>'
       + '<div style="font-size:12px;color:var(--text-muted);margin-bottom:8px">' + (r.addr||'') + '</div>'
-      + (r.items||r.comment ? '<div style="font-size:12px;margin-bottom:8px">' + (r.items||r.comment||'') + '</div>' : '');
+      + (r.applyname ? '<div style="font-size:12px;margin-bottom:4px">신청자: ' + r.applyname + (r.phone?' · '+r.phone:'') + '</div>' : '')
+      + (r.author ? '<div style="font-size:12px;margin-bottom:4px">기록자: ' + r.author + '</div>' : '')
+      + (r.items||r.comment ? '<div style="font-size:12px;margin-bottom:8px;color:var(--text)">' + (r.items||r.comment||'') + '</div>' : '');
     div.innerHTML = header;
     var sel = document.createElement('select');
     sel.setAttribute('aria-label', name + ' 상태 변경');
