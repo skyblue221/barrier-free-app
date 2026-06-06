@@ -755,8 +755,8 @@
 <script>
 // ── 설정 ──────────────────────────────────────────
 // ── 비밀번호 설정 (변경 시 아래 숫자만 수정) ────────────
-const MONITOR_PIN  = '7051';   // 모니터링단 비번
-const MANAGER_PIN  = '0517';   // 담당자 비번
+const FALLBACK_MONITOR_PIN  = '';   // 서버 확인 실패 시 열지 않음
+const FALLBACK_MANAGER_PIN  = '';   // 서버 확인 실패 시 열지 않음
 // ───────────────────────────────────────────────────────
 let SCRIPT_URL = localStorage.getItem('scriptUrl') || 'https://script.google.com/macros/s/AKfycbxBQWn2adwedy94MWxF3NGjyEnnMHde4vm-6VRXP1PEVGr6mDKQbQm7RFG3vnmrcAQ4/exec';
 
@@ -770,10 +770,43 @@ function saveRecord(rec) {
 }
 
 // ── 팀 구성 (연도 초에 이 부분만 수정하세요) ──────────
-const TEAMS = [
+let TEAMS = [
   { name: '1팀', members: ['홍길동', '김철수'] },
   { name: '2팀', members: ['이영희', '박지민'] },
 ];
+try {
+  const savedTeams = JSON.parse(localStorage.getItem('appTeams') || '[]');
+  if (Array.isArray(savedTeams) && savedTeams.length) TEAMS = savedTeams;
+} catch(e) {}
+let appSettingsPromise = null;
+
+async function loadAppSettings(force) {
+  if (appSettingsPromise && !force) return appSettingsPromise;
+  appSettingsPromise = fetch(SCRIPT_URL + '?type=settings', { cache: 'no-store' })
+    .then(function(res) { return res.json(); })
+    .then(function(data) {
+      if (data && data.result === 'ok' && data.settings && Array.isArray(data.settings.teams) && data.settings.teams.length) {
+        TEAMS = data.settings.teams;
+        localStorage.setItem('appTeams', JSON.stringify(TEAMS));
+      }
+      return TEAMS;
+    })
+    .catch(function(e) {
+      console.warn('설정 불러오기 실패:', e);
+      return TEAMS;
+    });
+  return appSettingsPromise;
+}
+
+async function verifyPin(pinType, pin) {
+  try {
+    const data = await postSheetData({ type: 'checkPin', pinType: pinType, pin: pin });
+    if (data && data.result === 'ok' && typeof data.valid === 'boolean') return data.valid;
+  } catch(e) {
+    console.warn('서버 비밀번호 확인 실패:', e);
+  }
+  return pinType === 'manager' ? pin === FALLBACK_MANAGER_PIN : pin === FALLBACK_MONITOR_PIN;
+}
 
 // ── 탭 전환 ──────────────────────────────────────
 function switchTab(id, el) {
@@ -891,9 +924,10 @@ function closeLock() {
   updateDots();
 }
 
-function checkPin() {
+async function checkPin() {
   if (pendingPinType === 'manager') {
-    if (pinValue === MANAGER_PIN) {
+    document.getElementById('lock-error').textContent = '확인 중...';
+    if (await verifyPin('manager', pinValue)) {
       managerUnlocked = true;
       document.getElementById('lock-screen').classList.remove('show');
       if (pendingManagerCallback) { pendingManagerCallback(); pendingManagerCallback = null; }
@@ -903,7 +937,8 @@ function checkPin() {
       setTimeout(() => { pinValue = ''; updateDots(); }, 800);
     }
   } else {
-    if (pinValue === MONITOR_PIN) {
+    document.getElementById('lock-error').textContent = '확인 중...';
+    if (await verifyPin('monitor', pinValue)) {
       monitorUnlocked = true;
       document.getElementById('lock-screen').classList.remove('show');
       switchTab('monitor', pendingTabEl);
@@ -1171,7 +1206,7 @@ async function uploadPhotosSequentially(files, place, date, timestamp) {
         fetch(SCRIPT_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'text/plain' },
-          body: JSON.stringify({ type: 'addPhotoLink', timestamp: timestamp, url: result.url })
+          body: JSON.stringify({ type: 'addPhotoLink', timestamp: timestamp, place: place, date: date, url: result.url })
         }).catch(function(){});
       } else {
         failed++;
@@ -1196,9 +1231,10 @@ async function uploadPhotosSequentially(files, place, date, timestamp) {
 // ── 활동 일지 ──────────────────────────────────────
 function getJournals() { return JSON.parse(localStorage.getItem('journals') || '[]'); }
 
-function initJournal() {
+async function initJournal() {
   var teamSel = document.getElementById('j_team');
   if (!teamSel) return;
+  await loadAppSettings();
   // 팀 목록 업데이트
   var cur = teamSel.value;
   teamSel.innerHTML = '<option value="">-- 팀을 선택하세요 --</option>';
@@ -1293,6 +1329,7 @@ async function submitJournal() {
   if (!date) { showToast('journal-toast','활동 날짜를 선택해 주세요.','error'); return; }
   if (!time) { showToast('journal-toast','활동 시간을 입력해 주세요.','error'); return; }
   if (!teamName) { showToast('journal-toast','활동 팀을 선택해 주세요.','error'); return; }
+  await loadAppSettings();
   var team = TEAMS.find(function(t) { return t.name === teamName; });
   var members = team ? team.members : [];
   var author = members.join(', ');
@@ -2153,6 +2190,7 @@ if ('serviceWorker' in navigator) {
 // 샘플 데이터 없음 (실제 운영용)
 
 document.getElementById('m_date').valueAsDate = new Date();
+loadAppSettings();
 updateDashboard();
 loadSettingsUI();
 </script>
