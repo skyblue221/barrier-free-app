@@ -1148,6 +1148,7 @@ async function submitMonitor() {
   var dropP = document.querySelector('.photo-drop p');
   if (dropP) dropP.textContent = '탭해서 사진 추가하기';
   document.getElementById('m_photos').value = '';
+  document.getElementById('m_date').valueAsDate = new Date();
 }
 
 // ── 사진 순차 업로드 (CORS 방식) ──────────────────────
