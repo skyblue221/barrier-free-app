@@ -1001,17 +1001,30 @@ async function submitMonitor() {
   }
 
   try {
-    await fetch(SCRIPT_URL, {
-      method: 'POST',
-      mode: 'no-cors',
-      body: JSON.stringify({
-        type: 'monitor', place, addr, date,
-        r1, r2, r3, r4, action, comment, author, extras,
-        photos, timestamp: ts
-      }),
-      headers: { 'Content-Type': 'application/json' }
-    });
-  } catch(e) {}
+    if (photos.length > 0) {
+      // 사진이 있으면 한 장씩 나눠서 전송 (payload 크기 제한 때문)
+      // 먼저 텍스트 데이터만 전송
+      await fetch(SCRIPT_URL, {
+        method: 'POST', mode: 'no-cors',
+        body: JSON.stringify({ type: 'monitor', place, addr, date, r1, r2, r3, r4, action, comment, author, extras, photos: [], timestamp: ts }),
+        headers: { 'Content-Type': 'application/json' }
+      });
+      // 사진을 한 장씩 추가 전송
+      for (var pi = 0; pi < photos.length; pi++) {
+        await fetch(SCRIPT_URL, {
+          method: 'POST', mode: 'no-cors',
+          body: JSON.stringify({ type: 'monitorPhoto', place, date, photo: photos[pi], photoIndex: pi, timestamp: ts }),
+          headers: { 'Content-Type': 'application/json' }
+        });
+      }
+    } else {
+      await fetch(SCRIPT_URL, {
+        method: 'POST', mode: 'no-cors',
+        body: JSON.stringify({ type: 'monitor', place, addr, date, r1, r2, r3, r4, action, comment, author, extras, photos: [], timestamp: ts }),
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+  } catch(e) { console.warn('전송 오류:', e); }
 
   saveRecord({ type:'monitor', name: place, addr, date, r1, r2, r3, r4, action, comment, author, extras, goodcase, timestamp: ts });
   showToast('monitor-toast', photos.length > 0 ? `✅ 기록과 사진 ${photos.length}장이 저장되었습니다!` : '✅ 기록이 저장되었습니다!', 'success');
@@ -1083,8 +1096,18 @@ function loadJournalStores() {
   var team = TEAMS.find(function(t) { return t.name === teamName; });
   var members = team ? team.members : [];
   if (memberEl && members.length) memberEl.textContent = '팀원: ' + members.join(', ');
+  // 날짜 정규화 (YYYY-MM-DD)
+  function normDate(d) {
+    if (!d) return '';
+    var s = String(d);
+    // Date 객체가 문자열로 변환된 경우 YYYY-MM-DD 추출
+    var m = s.match(/(\d{4})-(\d{2})-(\d{2})/);
+    return m ? m[0] : s.trim();
+  }
+  var normToday = normDate(date);
   var records = getRecords().filter(function(r) {
-    if (r.type !== 'monitor' || r.date !== date) return false;
+    if (r.type !== 'monitor') return false;
+    if (normDate(r.date) !== normToday) return false;
     if (!members.length) return true;
     return members.some(function(m) { return r.author && r.author.includes(m); });
   });
@@ -1132,8 +1155,15 @@ async function submitJournal() {
   var team = TEAMS.find(function(t) { return t.name === teamName; });
   var members = team ? team.members : [];
   var author = members.join(', ');
+  function normDate2(d) {
+    if (!d) return '';
+    var s = String(d);
+    var m = s.match(/(\d{4})-(\d{2})-(\d{2})/);
+    return m ? m[0] : s.trim();
+  }
   var monRecords = getRecords().filter(function(r) {
-    if (r.type !== 'monitor' || r.date !== date) return false;
+    if (r.type !== 'monitor') return false;
+    if (normDate2(r.date) !== normDate2(date)) return false;
     return !members.length || members.some(function(m) { return r.author && r.author.includes(m); });
   });
   var stores = monRecords.map(function(r) { return r.name; });
