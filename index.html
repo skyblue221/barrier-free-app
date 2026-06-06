@@ -683,7 +683,14 @@
     </div>
   </div>
   <div class="card">
-    <div class="card-title" id="map-list-title">신청 목록</div>
+    <div class="card-title" id="map-list-title">지도 목록</div>
+    <div id="map-legend" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;font-size:12px;color:var(--text-muted);align-items:center;padding:10px 12px;background:var(--bg);border-radius:8px">
+      <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:50%;background:#1a8c6e;display:inline-block"></span> 보급 신청</span>
+      <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:50%;background:#ec4899;display:inline-block"></span> 상점 추천</span>
+      <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:50%;background:#dc2626;display:inline-block"></span> 조치 필요</span>
+      <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:50%;background:#d97706;display:inline-block"></span> 추후 확인</span>
+      <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:50%;background:#3b82f6;display:inline-block"></span> 모니터링 양호</span>
+    </div>
     <div id="map-list" role="list" aria-labelledby="map-list-title" aria-live="polite"></div>
   </div>
 </div>
@@ -2067,11 +2074,19 @@ function moveToMyLocation() {
 }
 
 function getMarkerColor(rec) {
-  if (rec.type === 'apply') return '#1a8c6e';         // 🟢 초록 - 보급 신청 (모니터링 전)
-  if (rec.action === '조치 필요') return '#dc2626';   // 🔴 빨강 - 조치 필요
-  if (rec.action === '추후 확인') return '#d97706';   // 🟡 노랑 - 추후 확인
-  if (rec.action === '양호') return '#3b82f6';        // 🔵 파랑 - 모니터링 완료 (양호)
-  return '#6b7280';                                   // ⚫ 회색 - 기타
+  if (rec.type === 'apply') return '#1a8c6e';
+  if (rec.type === 'recommend') return '#ec4899';
+  if (rec.action === '조치 필요') return '#dc2626';
+  if (rec.action === '추후 확인') return '#d97706';
+  if (rec.action === '양호') return '#3b82f6';
+  return '#6b7280';
+}
+
+function getRecordTypeMeta(rec) {
+  if (rec.type === 'apply') return { label: '보급 신청', tagClass: 'tag tag-apply' };
+  if (rec.type === 'recommend') return { label: '상점 추천', tagClass: 'tag tag-good' };
+  if (rec.type === 'monitor') return { label: '모니터링', tagClass: 'tag tag-monitor' };
+  return { label: rec.type || '기록', tagClass: 'tag' };
 }
 
 function renderMap() {
@@ -2099,14 +2114,8 @@ function renderMap() {
     });
   }
 
-  listEl.innerHTML = '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;font-size:12px;color:var(--text-muted);align-items:center;padding:10px 12px;background:var(--bg);border-radius:8px">'
-    + '<span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:50%;background:#1a8c6e;display:inline-block"></span> 보급 신청</span>'
-    + '<span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:50%;background:#dc2626;display:inline-block"></span> 조치 필요</span>'
-    + '<span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:50%;background:#d97706;display:inline-block"></span> 추후 확인</span>'
-    + '<span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:50%;background:#3b82f6;display:inline-block"></span> 모니터링 완료</span>'
-    + '</div><div id="map-record-list"></div>';
-
-  const recordListEl = document.getElementById('map-record-list');
+  listEl.innerHTML = '';
+  const recordListEl = listEl;
 
   if (mapRecords.length === 0) {
     recordListEl.innerHTML = '<div class="empty-state"><div class="empty-icon" aria-hidden="true">📍</div>아직 기록이 없어요</div>';
@@ -2117,8 +2126,9 @@ function renderMap() {
 
   mapRecords.forEach(function(rec, idx) {
     const markerColor = getMarkerColor(rec);
-    const typeLabel = rec.type === 'apply' ? '보급 신청' : '모니터링';
-    const typeTagStyle = rec.type === 'apply' ? 'tag tag-apply' : 'tag tag-monitor';
+    const typeMeta = getRecordTypeMeta(rec);
+    const typeLabel = typeMeta.label;
+    const typeTagStyle = typeMeta.tagClass;
     const actionLabel = rec.action === '조치 필요' ? '조치 필요'
       : rec.action === '추후 확인' ? '추후 확인'
       : rec.action === '양호' ? '양호' : '';
