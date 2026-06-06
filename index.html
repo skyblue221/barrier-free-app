@@ -84,6 +84,7 @@
     #home.section.active { max-width: 1100px; display: grid; grid-template-columns: 1fr 1fr; gap: 0 24px; padding: 28px 40px 60px; }
     #apply.section.active, #monitor.section.active, #map.section.active, #settings.section.active { padding: 28px 40px 60px; }
     #map.section.active #kakao-map { height: 460px; }
+    #map-list { max-height: 460px !important; }
     .modal-sheet { border-radius: var(--radius); max-width: 600px; }
     .modal-overlay { align-items: center; }
   }
@@ -691,7 +692,7 @@
       <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:50%;background:#d97706;display:inline-block"></span> 추후 확인</span>
       <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:50%;background:#3b82f6;display:inline-block"></span> 모니터링 양호</span>
     </div>
-    <div id="map-list" role="list" aria-labelledby="map-list-title" aria-live="polite"></div>
+    <div id="map-list" role="list" aria-labelledby="map-list-title" aria-live="polite" style="max-height:360px;overflow-y:auto;padding-right:4px;overscroll-behavior:contain"></div>
   </div>
 </div>
 
