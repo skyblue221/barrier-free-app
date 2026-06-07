@@ -2247,8 +2247,8 @@ function renderMap() {
       });
 
       item.addEventListener('click', function() {
+        kakao.maps.event.trigger(mapInstance, 'resize');
         mapInstance.setCenter(coords);
-        mapInstance.setLevel(3);
         info.open(mapInstance, marker);
       });
     });
