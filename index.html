@@ -981,7 +981,7 @@ function gotoMapTab() {
 }
 
 // ── PIN 잠금 ──────────────────────────────────────
-let pinValue = '', monitorUnlocked = false, managerUnlocked = false, pendingTabEl = null, pendingPinType = 'monitor';
+let pinValue = '', monitorUnlocked = false, managerUnlocked = false, monitorSessionPin = '', managerSessionPin = '', pendingTabEl = null, pendingPinType = 'monitor';
 
 function requirePin(el) {
   if (monitorUnlocked) { switchTab('monitor', el); return; }
@@ -1042,6 +1042,7 @@ async function checkPin() {
     document.getElementById('lock-error').textContent = '확인 중...';
     if (await verifyPin('manager', pinValue)) {
       managerUnlocked = true;
+      managerSessionPin = pinValue;
       document.getElementById('lock-screen').classList.remove('show');
       if (pendingManagerCallback) { pendingManagerCallback(); pendingManagerCallback = null; }
     } else {
@@ -1053,6 +1054,7 @@ async function checkPin() {
     document.getElementById('lock-error').textContent = '확인 중...';
     if (await verifyPin('monitor', pinValue)) {
       monitorUnlocked = true;
+      monitorSessionPin = pinValue;
       document.getElementById('lock-screen').classList.remove('show');
       switchTab('monitor', pendingTabEl);
       if (window._pendingSubtab) {
@@ -1287,6 +1289,7 @@ async function uploadPhotosSequentially(files, place, date, timestamp) {
       // text/plain으로 전송 (CORS preflight 방지)
       var payload = JSON.stringify({
         type: 'uploadPhoto',
+        monitorPin: monitorSessionPin,
         place: place,
         date: date,
         photo: photoBase64,
@@ -1320,7 +1323,7 @@ async function uploadPhotosSequentially(files, place, date, timestamp) {
         fetch(SCRIPT_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'text/plain' },
-          body: JSON.stringify({ type: 'addPhotoLink', timestamp: timestamp, place: place, date: date, url: result.url })
+          body: JSON.stringify({ type: 'addPhotoLink', monitorPin: monitorSessionPin, timestamp: timestamp, place: place, date: date, url: result.url })
         }).catch(function(){});
       } else {
         failed++;
@@ -1541,7 +1544,7 @@ async function updateRecordStatus(timestamp, type, status) {
   try {
     await fetch(SCRIPT_URL, {
       method: 'POST', mode: 'no-cors',
-      body: JSON.stringify({ type: 'updateStatus', timestamp: timestamp, recordType: type, status: status }),
+      body: JSON.stringify({ type: 'updateStatus', managerPin: managerSessionPin, timestamp: timestamp, recordType: type, status: status }),
       headers: { 'Content-Type': 'application/json' }
     });
   } catch(e) {}
@@ -1953,6 +1956,7 @@ function toggleManagerAuth() {
   if (managerUnlocked) {
     // 로그아웃
     managerUnlocked = false;
+    managerSessionPin = '';
     updateManagerAuthUI();
     renderRecords();
   } else {
@@ -2092,11 +2096,13 @@ let lastSheetSyncAt = 0;
 async function syncRecordsFromSheet(force) {
   const now = Date.now();
   if (!force && now - lastSheetSyncAt < 30000) return getRecords();
+  if (!managerUnlocked || !managerSessionPin) throw new Error('manager-auth-required');
+  const authQuery = '&managerPin=' + encodeURIComponent(managerSessionPin);
 
   const [applyRes, monitorRes, recRes] = await Promise.all([
-    fetch(SCRIPT_URL + '?type=apply', { cache: 'no-store' }),
-    fetch(SCRIPT_URL + '?type=monitor', { cache: 'no-store' }),
-    fetch(SCRIPT_URL + '?type=recommend', { cache: 'no-store' }).catch(() => ({json:()=>({result:'ok',records:[]})}))
+    fetch(SCRIPT_URL + '?type=apply' + authQuery, { cache: 'no-store' }),
+    fetch(SCRIPT_URL + '?type=monitor' + authQuery, { cache: 'no-store' }),
+    fetch(SCRIPT_URL + '?type=recommend' + authQuery, { cache: 'no-store' }).catch(() => ({json:()=>({result:'ok',records:[]})}))
   ]);
   const [applyData, monitorData, recData] = await Promise.all([applyRes.json(), monitorRes.json(), recRes.json()]);
   if (applyData.result !== 'ok' || monitorData.result !== 'ok') throw new Error('sheet-load-failed');
@@ -2116,7 +2122,13 @@ async function syncRecordsFromSheet(force) {
 }
 
 async function loadFromSheet() {
-  const btn = event.target;
+  if (!managerUnlocked || !managerSessionPin) {
+    requireManagerPin(loadFromSheet);
+    return;
+  }
+  const btn = (typeof event !== 'undefined' && event && event.target)
+    ? event.target
+    : document.querySelector('button[onclick="loadFromSheet()"]');
   btn.disabled = true;
   btn.textContent = '불러오는 중...';
   try {
@@ -2124,7 +2136,7 @@ async function loadFromSheet() {
     // 일지 불러오기
     let journalMsg = '';
     try {
-      const jRes = await fetch(SCRIPT_URL + '?type=journal');
+      const jRes = await fetch(SCRIPT_URL + '?type=journal&managerPin=' + encodeURIComponent(managerSessionPin));
       const jData = await jRes.json();
       if (jData.result === 'ok' && jData.records) {
         jData.records.sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp));
