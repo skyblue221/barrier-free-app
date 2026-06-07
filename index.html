@@ -817,6 +817,10 @@ const FALLBACK_MONITOR_PIN  = '';   // 서버 확인 실패 시 열지 않음
 const FALLBACK_MANAGER_PIN  = '';   // 서버 확인 실패 시 열지 않음
 // ───────────────────────────────────────────────────────
 let SCRIPT_URL = localStorage.getItem('scriptUrl') || 'https://script.google.com/macros/s/AKfycbxBQWn2adwedy94MWxF3NGjyEnnMHde4vm-6VRXP1PEVGr6mDKQbQm7RFG3vnmrcAQ4/exec';
+if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+window.addEventListener('load', function() {
+  setTimeout(function() { window.scrollTo(0, 0); }, 0);
+});
 
 // ── 로컬 스토리지 데이터 ──────────────────────────
 function getRecords() { return JSON.parse(localStorage.getItem('records') || '[]'); }
@@ -2098,6 +2102,7 @@ async function testSheet() {
 // ── 지도 ─────────────────────────────────────────
 let mapInstance = null;
 let mapMarkers = [];
+let currentInfoWindow = null;
 
 function initMap() {
   if (window.kakaoMapReady) {
@@ -2170,6 +2175,10 @@ function renderMap() {
 
   mapMarkers.forEach(m => m.setMap(null));
   mapMarkers = [];
+  if (currentInfoWindow) {
+    currentInfoWindow.close();
+    currentInfoWindow = null;
+  }
 
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(function(pos) {
@@ -2243,13 +2252,17 @@ function renderMap() {
       const info = new kakao.maps.InfoWindow({ content: infoHtml });
 
       kakao.maps.event.addListener(marker, 'click', function() {
+        if (currentInfoWindow) currentInfoWindow.close();
         info.open(mapInstance, marker);
+        currentInfoWindow = info;
       });
 
       item.addEventListener('click', function() {
         kakao.maps.event.trigger(mapInstance, 'resize');
         mapInstance.setCenter(coords);
+        if (currentInfoWindow) currentInfoWindow.close();
         info.open(mapInstance, marker);
+        currentInfoWindow = info;
       });
     });
   });
