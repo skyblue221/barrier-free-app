@@ -252,15 +252,15 @@
     body #map.section.active .map-sticky {
       grid-column: 1 !important;
       grid-row: 2 !important;
-      height: 100% !important;
+      height: auto !important;
       min-height: 0 !important;
       display: flex !important;
       flex-direction: column !important;
     }
     body #map.section.active #kakao-map {
-      flex: 1 1 auto !important;
-      height: auto !important;
-      min-height: 360px !important;
+      flex: 0 0 auto !important;
+      height: clamp(460px, 56vh, 620px) !important;
+      min-height: 460px !important;
     }
     body #map.section.active .map-list-card {
       grid-column: 2 !important;
@@ -2252,7 +2252,7 @@ function renderMap() {
         mapInstance.setCenter(coords);
         mapInstance.setLevel(3);
         info.open(mapInstance, marker);
-        container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        container.scrollIntoView({ behavior: 'smooth', block: 'center' });
       });
     });
   });
