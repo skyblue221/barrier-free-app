@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ko">
 <head>
 <meta charset="UTF-8" />
@@ -40,6 +40,7 @@
   .section.active { display: block; }
   #map.section.active { height: calc(100vh - 101px); overflow: hidden; display: flex; flex-direction: column; }
   #map.section.active .notice { flex: 0 0 auto; }
+  #map.section.active #kakao-map { height: 180px !important; }
   #map .map-sticky { flex: 0 0 auto; }
   #map .map-list-card { flex: 1 1 0; min-height: 0; overflow: hidden; display: flex; flex-direction: column; margin-bottom: 0; }
   #map .map-list-card .card-title { flex: 0 0 auto; }
@@ -90,7 +91,7 @@
     #home.section.active { max-width: 1100px; display: grid; grid-template-columns: 1fr 1fr; gap: 0 24px; padding: 28px 40px 60px; }
     #apply.section.active, #monitor.section.active, #settings.section.active { padding: 28px 40px 60px; }
     #map.section.active { padding: 28px 40px 40px; height: calc(100vh - 109px); }
-    #map.section.active #kakao-map { height: 460px; }
+    #map.section.active #kakao-map { height: 460px !important; }
     .modal-sheet { border-radius: var(--radius); max-width: 600px; }
     .modal-overlay { align-items: center; }
   }
@@ -688,7 +689,7 @@
         📍 내 위치
       </button>
     </div>
-    <div id="map-legend" style="display:flex;gap:10px;flex-wrap:wrap;margin-top:8px;font-size:12px;color:var(--text-muted);align-items:center;padding:10px 12px;background:var(--white);border:1px solid var(--border);border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.04)">
+    <div id="map-legend" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;font-size:11px;color:var(--text-muted);align-items:center;padding:8px 10px;background:var(--white);border:1px solid var(--border);border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.04)">
       <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:50%;background:#1a8c6e;display:inline-block"></span> 보급 신청</span>
       <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:50%;background:#ec4899;display:inline-block"></span> 상점 추천</span>
       <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:50%;background:#dc2626;display:inline-block"></span> 조치 필요</span>
