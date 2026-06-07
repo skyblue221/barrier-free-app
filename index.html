@@ -273,34 +273,52 @@
 
   @media (max-width: 768px) {
     body #map.section.active {
-      height: auto !important;
+      height: calc(100vh - 101px) !important;
       min-height: 0 !important;
-      overflow: visible !important;
-      display: block !important;
-      padding-bottom: 60px !important;
+      overflow: hidden !important;
+      display: flex !important;
+      flex-direction: column !important;
+      padding-bottom: 12px !important;
     }
-    body #map.section.active #kakao-map {
-      height: 260px !important;
-      min-height: 260px !important;
+    body #map.section.active .notice {
+      flex: 0 0 auto !important;
     }
     body #map.section.active .map-sticky {
       position: static !important;
-      display: block !important;
+      flex: 0 0 auto !important;
+      display: flex !important;
+      flex-direction: column !important;
       height: auto !important;
       min-height: 0 !important;
+      padding-bottom: 8px !important;
+    }
+    body #map.section.active #map-legend {
+      order: -1 !important;
+      margin-top: 0 !important;
+      margin-bottom: 6px !important;
+    }
+    body #map.section.active #kakao-map {
+      height: 230px !important;
+      min-height: 230px !important;
     }
     body #map.section.active .map-list-card {
-      display: block !important;
+      flex: 1 1 0 !important;
+      display: flex !important;
+      flex-direction: column !important;
       height: auto !important;
       min-height: 0 !important;
-      overflow: visible !important;
-      margin-bottom: 14px !important;
+      overflow: hidden !important;
+      margin-bottom: 0 !important;
     }
     body #map.section.active #map-list {
-      height: auto !important;
+      flex: 1 1 0 !important;
+      height: 100% !important;
+      min-height: 0 !important;
       max-height: none !important;
-      overflow: visible !important;
-      padding-right: 0 !important;
+      overflow-y: auto !important;
+      padding-right: 4px !important;
+      -webkit-overflow-scrolling: touch !important;
+      overscroll-behavior: contain !important;
     }
   }
 </style>
