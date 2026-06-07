@@ -236,9 +236,9 @@
 
   @media (min-width: 769px) {
     body #map.section.active {
-      max-width: 1180px !important;
+      max-width: 1500px !important;
       display: grid !important;
-      grid-template-columns: minmax(0, 1fr) 360px !important;
+      grid-template-columns: minmax(0, 1fr) 380px !important;
       grid-template-rows: auto minmax(0, 1fr) !important;
       gap: 14px 18px !important;
       padding: 28px 40px 24px !important;
@@ -259,8 +259,8 @@
     }
     body #map.section.active #kakao-map {
       flex: 0 0 auto !important;
-      height: clamp(460px, 56vh, 620px) !important;
-      min-height: 460px !important;
+      height: clamp(520px, 64vh, 720px) !important;
+      min-height: 520px !important;
     }
     body #map.section.active .map-list-card {
       grid-column: 2 !important;
@@ -2101,11 +2101,9 @@ let mapMarkers = [];
 
 function initMap() {
   if (window.kakaoMapReady) {
-    syncRecordsFromSheet(false).then(renderMap).catch(renderMap);
+    renderMap();
   } else {
-    window.pendingMapRender = function() {
-      syncRecordsFromSheet(false).then(renderMap).catch(renderMap);
-    };
+    window.pendingMapRender = renderMap;
   }
 }
 
