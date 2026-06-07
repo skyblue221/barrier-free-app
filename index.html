@@ -925,8 +925,12 @@ async function verifyPin(pinType, pin) {
 function switchTab(id, el) {
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab[role="tab"]').forEach(t => t.setAttribute('aria-selected', 'false'));
   document.getElementById(id).classList.add('active');
-  if (el) el.classList.add('active');
+  if (el) {
+    el.classList.add('active');
+    el.setAttribute('aria-selected', 'true');
+  }
   if (id === 'home') updateDashboard();
   if (id === 'settings') loadSettingsUI();
   if (id === 'map') initMap();
@@ -1072,12 +1076,23 @@ async function checkPin() {
 
 // ── 평가 / 필 ─────────────────────────────────────
 function setRating(fieldId, groupId, btn, level) {
-  document.getElementById(groupId).querySelectorAll('.rating-btn').forEach(b => b.classList.remove('sel-good','sel-fair','sel-poor'));
+  document.getElementById(groupId).querySelectorAll('.rating-btn').forEach(b => {
+    b.classList.remove('sel-good','sel-fair','sel-poor');
+    b.setAttribute('aria-pressed', 'false');
+    b.setAttribute('aria-checked', 'false');
+  });
   btn.classList.add('sel-' + level);
+  btn.setAttribute('aria-pressed', 'true');
+  btn.setAttribute('aria-checked', 'true');
   document.getElementById(fieldId).value = level === 'good' ? '좋음' : level === 'fair' ? '보통' : '미흡';
 }
 function selectPill(val) {
-  ['yes','no','follow'].forEach(v => { const el = document.getElementById('pill_' + v); el.className = 'pill'; if (v === val) el.classList.add('active-' + v); });
+  ['yes','no','follow'].forEach(v => {
+    const el = document.getElementById('pill_' + v);
+    el.className = 'pill';
+    el.setAttribute('aria-pressed', v === val ? 'true' : 'false');
+    if (v === val) el.classList.add('active-' + v);
+  });
   document.getElementById('m_action').value = val === 'yes' ? '조치 필요' : val === 'no' ? '양호' : '추후 확인';
 }
 let selectedPhotos = [];
