@@ -1210,7 +1210,7 @@ async function submitMonitor() {
 
   // 로컬 먼저 저장 (사진 없이)
   try {
-    await postSheetData({ type: 'monitor', place, addr, date, r1, r2, r3, r4, action, comment, author, extras, photos: [], timestamp: ts });
+    await postSheetData({ type: 'monitor', monitorPin: monitorSessionPin, managerPin: managerSessionPin, place, addr, date, r1, r2, r3, r4, action, comment, author, extras, photos: [], timestamp: ts });
   } catch(e) {
     console.warn('시트 저장 오류:', e);
     showToast('monitor-toast', '시트 저장에 실패했어요. 사진을 빼거나 잠시 후 다시 시도해 주세요.', 'error');
@@ -1290,6 +1290,7 @@ async function uploadPhotosSequentially(files, place, date, timestamp) {
       var payload = JSON.stringify({
         type: 'uploadPhoto',
         monitorPin: monitorSessionPin,
+        managerPin: managerSessionPin,
         place: place,
         date: date,
         photo: photoBase64,
@@ -1323,7 +1324,7 @@ async function uploadPhotosSequentially(files, place, date, timestamp) {
         fetch(SCRIPT_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'text/plain' },
-          body: JSON.stringify({ type: 'addPhotoLink', monitorPin: monitorSessionPin, timestamp: timestamp, place: place, date: date, url: result.url })
+          body: JSON.stringify({ type: 'addPhotoLink', monitorPin: monitorSessionPin, managerPin: managerSessionPin, timestamp: timestamp, place: place, date: date, url: result.url })
         }).catch(function(){});
       } else {
         failed++;
@@ -1473,7 +1474,7 @@ async function submitJournal() {
   localStorage.setItem('journals', JSON.stringify(journals));
   showToast('journal-toast','✅ 활동 일지가 제출되었습니다!','success');
   // 시트 전송 (백그라운드)
-  fetch(SCRIPT_URL, { method:'POST', mode:'no-cors', body: JSON.stringify({type:'journal', date, time, team:teamName, author, stores:storeList, memo, timestamp:ts}), headers:{'Content-Type':'application/json'} }).catch(function(){});
+  fetch(SCRIPT_URL, { method:'POST', mode:'no-cors', body: JSON.stringify({type:'journal', monitorPin:monitorSessionPin, managerPin:managerSessionPin, date, time, team:teamName, author, stores:storeList, memo, timestamp:ts}), headers:{'Content-Type':'application/json'} }).catch(function(){});
   if (memoEl) memoEl.value = '';
   if (extraEl) extraEl.value = '';
   setLoading('journal-btn', false, '일지 제출하기');
