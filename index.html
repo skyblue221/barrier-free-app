@@ -270,6 +270,39 @@
       margin-bottom: 0 !important;
     }
   }
+
+  @media (max-width: 768px) {
+    body #map.section.active {
+      height: auto !important;
+      min-height: 0 !important;
+      overflow: visible !important;
+      display: block !important;
+      padding-bottom: 60px !important;
+    }
+    body #map.section.active #kakao-map {
+      height: 260px !important;
+      min-height: 260px !important;
+    }
+    body #map.section.active .map-sticky {
+      position: static !important;
+      display: block !important;
+      height: auto !important;
+      min-height: 0 !important;
+    }
+    body #map.section.active .map-list-card {
+      display: block !important;
+      height: auto !important;
+      min-height: 0 !important;
+      overflow: visible !important;
+      margin-bottom: 14px !important;
+    }
+    body #map.section.active #map-list {
+      height: auto !important;
+      max-height: none !important;
+      overflow: visible !important;
+      padding-right: 0 !important;
+    }
+  }
 </style>
 
 </head>
