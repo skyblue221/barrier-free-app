@@ -1249,10 +1249,9 @@ async function submitMonitor() {
   document.getElementById('m_addr').value = '';
   document.getElementById('m_comment').value = '';
   document.getElementById('m_author').value = '';
-  document.getElementById('m_extras').value = '';
   // 평가 버튼 초기화
   ['m_r1','m_r2','m_r3','m_r4'].forEach(function(id) { document.getElementById(id).value = ''; });
-  document.querySelectorAll('.rating-btn').forEach(function(b) { b.classList.remove('sel-good','sel-fair','sel-poor'); b.setAttribute('aria-pressed','false'); });
+  document.querySelectorAll('.rating-btn').forEach(function(b) { b.classList.remove('sel-good','sel-fair','sel-poor'); b.setAttribute('aria-pressed','false'); b.setAttribute('aria-checked','false'); });
   // 조치 필요 pill 초기화
   document.getElementById('m_action').value = '';
   ['pill_yes','pill_no','pill_follow'].forEach(function(id) { var el=document.getElementById(id); if(el){el.className='pill';el.setAttribute('aria-pressed','false');} });
