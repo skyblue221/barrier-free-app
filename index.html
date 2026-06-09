@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>우리 동네 배리어프리</title>
+<title>열린 마을 만들기</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="manifest" href="manifest.json" />
 <meta name="theme-color" content="#1a8c6e" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-<meta name="apple-mobile-web-app-title" content="우리동네배리어프리" />
+<meta name="apple-mobile-web-app-title" content="열린마을만들기" />
 <link rel="apple-touch-icon" href="icon-192.png" />
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet" />
 <style>
@@ -373,8 +373,8 @@
 
 <a href="#apply" class="sr-only" style="position:absolute;left:-9999px;top:0;background:var(--teal);color:white;padding:8px 16px;z-index:9999;border-radius:4px" onfocus="this.style.left='0'" onblur="this.style.left='-9999px'">본문으로 바로가기</a>
 <header class="app-header">
-  <h1>🌿 우리 동네 배리어프리</h1>
-  <p>우리 동네 접근성 개선 신청 및 모니터링</p>
+  <h1>🌿 열린 마을 만들기</h1>
+  <p>누구나 편하게 오갈 수 있는 마을을 함께 만들어요</p>
   <a href="tel:0263957051" style="display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--teal);text-decoration:none;margin-top:4px">📞 02-6395-7051 · 평일 09:00~18:00</a>
 </header>
 
@@ -390,7 +390,7 @@
 <div id="home" class="section active" role="tabpanel" aria-label="홈 대시보드">
 
   <div class="card" style="background:linear-gradient(135deg,var(--teal-light) 0%,#fff 100%);border-color:var(--teal-mid)">
-    <div style="font-size:18px;font-weight:700;color:var(--teal);margin-bottom:8px">우리 동네 배리어프리 🌿</div>
+    <div style="font-size:18px;font-weight:700;color:var(--teal);margin-bottom:8px">열린 마을 만들기 🌿</div>
     <div style="font-size:14px;color:#1a5c4a;line-height:1.8">
       누구든 편하게 드나들 수 있는 가게를 함께 찾고, 만들어가요.<br>
       좋은 가게는 추천하고, 필요한 곳은 신청해주세요.<br>
@@ -787,6 +787,7 @@
       <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:50%;background:#1a8c6e;display:inline-block"></span> 보급 신청</span>
       <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:50%;background:#ec4899;display:inline-block"></span> 상점 추천</span>
       <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:50%;background:#dc2626;display:inline-block"></span> 조치 필요</span>
+      <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:50%;background:#9ca3af;display:inline-block"></span> 미검증 (모니터링단만 표시)</span>
       <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:50%;background:#d97706;display:inline-block"></span> 추후 확인</span>
       <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:50%;background:#3b82f6;display:inline-block"></span> 모니터링 양호</span>
     </div>
@@ -1578,7 +1579,12 @@ function renderHomeMap(records) {
     setTimeout(() => renderHomeMap(records), 500);
     return;
   }
-  const mapRecords = records.filter(r => r.addr);
+  // 모니터링단이면 전체, 아니면 검증된 것만 표시
+  const mapRecords = records.filter(r => {
+    if (!r.addr) return false;
+    if (monitorUnlocked || managerUnlocked) return true;
+    return isVerified(r);
+  });
   if (mapRecords.length === 0) {
     container.style.background = 'var(--bg)';
     container.style.display = 'flex';
@@ -1830,11 +1836,12 @@ function statusDropdown(r) {
     <option value="">── 상태 변경 (담당자)</option>
     <option value="신청 접수">신청 접수</option>
     <option value="검토 중">검토 중</option>
+    <option value="확인 완료 ✓" style="font-weight:700;color:#16a34a">✅ 확인 완료 (지도 공개)</option>
     <option value="보급 완료">보급 완료</option>
     <option value="조치 필요">조치 필요</option>
     <option value="조치 완료">조치 완료</option>
-    <option value="추후 확인">추후 확인</option>
     <option value="양호">양호</option>
+    <option value="추후 확인">추후 확인</option>
   </select>`;
 }
 
@@ -2224,13 +2231,21 @@ function moveToMyLocation() {
   });
 }
 
+// 검증 완료 여부 판단
+function isVerified(rec) {
+  const verifiedStatuses = ['보급 완료', '조치 완료', '확인 완료', '확인 완료 ✓', '양호'];
+  return verifiedStatuses.includes(rec.action);
+}
+
 function getMarkerColor(rec) {
+  // 미검증은 회색
+  if (!isVerified(rec)) return '#9ca3af';
+  // 검증 완료
   if (rec.type === 'apply') return '#1a8c6e';
   if (rec.type === 'recommend') return '#ec4899';
-  if (rec.action === '조치 필요') return '#dc2626';
-  if (rec.action === '추후 확인') return '#d97706';
+  if (rec.action === '조치 완료') return '#16a34a';
   if (rec.action === '양호') return '#3b82f6';
-  return '#6b7280';
+  return '#1a8c6e';
 }
 
 function getRecordTypeMeta(rec) {
@@ -2242,7 +2257,12 @@ function getRecordTypeMeta(rec) {
 
 function renderMap() {
   const allRecords = getRecords();
-  const mapRecords = allRecords.filter(r => r.addr);
+  // 모니터링단(PIN 인증)이면 전체, 아니면 검증된 것만 표시
+  const mapRecords = allRecords.filter(r => {
+    if (!r.addr) return false;
+    if (monitorUnlocked || managerUnlocked) return true;
+    return isVerified(r);
+  });
   const container = document.getElementById('kakao-map');
   const listEl = document.getElementById('map-list');
 
@@ -2297,9 +2317,11 @@ function renderMap() {
     item.setAttribute('role', 'listitem');
     item.setAttribute('tabindex', '0');
     item.setAttribute('aria-label', rec.name + ', ' + rec.addr + ', ' + typeLabel + (actionLabel ? ', ' + actionLabel : '') + (rec.items ? ', ' + rec.items : '') + '. 지도에서 위치 보기');
+    const verifiedBadge = isVerified(rec) ? '' : '<span style="font-size:10px;color:#9ca3af;background:#f3f4f6;border:1px solid #e5e7eb;border-radius:8px;padding:1px 6px;margin-left:4px">미검증</span>';
     item.innerHTML = '<div class="rec-top" style="justify-content:flex-start;gap:6px">'
       + '<span style="width:10px;height:10px;border-radius:50%;background:'+markerColor+';display:inline-block;flex-shrink:0" aria-hidden="true"></span>'
       + '<span class="rec-name">'+rec.name+'</span>'
+      + verifiedBadge
       + '</div>'
       + '<div class="rec-addr">'+rec.addr+'</div>'
       + '<div class="rec-tags"><span class="'+typeTagStyle+'">'+typeLabel+'</span>'
